@@ -7,6 +7,7 @@ import com.example.quizmaster.payload.Pageable;
 import com.example.quizmaster.payload.RegisterRequest;
 import com.example.quizmaster.payload.response.ResponseUser;
 import com.example.quizmaster.repository.UserRepository;
+import io.swagger.annotations.Api;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -89,6 +90,44 @@ public class UserService {
                 .role(user.getRole().name())
                 .build();
         return new ApiResponse("Success", HttpStatus.OK, responseUser);
+    }
+
+    public ApiResponse updateUser(Long userId, RegisterRequest request) {
+
+        Optional<User> optionalUser = userRepository.findById(userId);
+        if (optionalUser.isEmpty()) {
+            return new ApiResponse("Foydalanuvchi topilmadi", HttpStatus.NOT_FOUND);
+        }
+
+        User user = optionalUser.get();
+
+        user.setFirstName(request.firstName());
+        user.setLastName(request.lastName());
+
+        if (request.password() != null && !request.password().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(request.password()));
+        }
+
+        userRepository.save(user);
+
+        return new ApiResponse("User successfully updated", HttpStatus.OK);
+    }
+
+    public ApiResponse getOne(Long id) {
+        User user = userRepository.findById(id).orElse(null);
+        if (user == null) {
+            return new ApiResponse("User not found with this id " + id, HttpStatus.NOT_FOUND);
+        }
+
+        ResponseUser responseUser = ResponseUser.builder()
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .role(user.getRole().name())
+                .build();
+
+
+        return new ApiResponse("User found", HttpStatus.OK, responseUser);
     }
 
     public List<ResponseUser> toResponseUser(List<User> users) {

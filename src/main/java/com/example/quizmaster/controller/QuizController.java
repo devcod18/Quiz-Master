@@ -70,4 +70,11 @@ public class QuizController {
         ApiResponse apiResponse = service.passTest(reqPassTestList, user, quizId);
         return ResponseEntity.ok(apiResponse);
     }
+
+    @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN', 'ROLE_ADMIN')")
+    @PutMapping("/getOne/{quizId}")
+    public ResponseEntity<ApiResponse> getOne(@PathVariable Long quizId){
+        ApiResponse one = service.getOne(quizId);
+        return ResponseEntity.ok(one);
+    }
 }

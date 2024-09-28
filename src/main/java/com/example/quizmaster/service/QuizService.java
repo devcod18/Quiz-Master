@@ -31,6 +31,7 @@ public class QuizService {
     private final QuestionService questionService;
     private final ResultRepository resultRepository;
     private final AnswerRepository answerRepository;
+
     public ApiResponse save(RequestQuiz requestQuiz) {
 
         Quiz quiz = Quiz.builder()
@@ -55,9 +56,6 @@ public class QuizService {
 
         Pageable pageable = Pageable.builder()
                 .page(page)
-
-
-
                 .size(size)
                 .totalPage(quizPage.getTotalPages())
                 .totalElements(quizPage.getTotalElements())
@@ -126,6 +124,26 @@ public class QuizService {
 
         resultRepository.save(result);
         return new ApiResponse("Test passed successfully", HttpStatus.OK);
+    }
+
+    public ApiResponse getOne(Long id){
+        Quiz quiz = quizRepository.findById(id).orElse(null);
+
+        if (quiz == null) {
+            return new ApiResponse("Quiz not found with this id: " + id, HttpStatus.NOT_FOUND);
+        }
+
+        ResponseQuiz responseQuiz = ResponseQuiz.builder()
+                .id(quiz.getId())
+                .title(quiz.getTitle())
+                .description(quiz.getDescription())
+                .createdAt(quiz.getCreatedAt())
+                .timeLimit(quiz.getTimeLimit())
+                .questionCount(quiz.getQuestionCount())
+                .build();
+
+        return new ApiResponse("Quiz found", HttpStatus.OK, responseQuiz);
+
     }
 
     private ResponseQuiz mapToResponseQuiz(Quiz quiz) {
