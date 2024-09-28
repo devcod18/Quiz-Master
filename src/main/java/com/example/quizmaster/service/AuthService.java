@@ -24,8 +24,6 @@ public class AuthService {
     private final JwtProvider jwtProvider;
     private final EmailSenderService emailSenderService;
 
-
-
     public ApiResponse registerUser(RegisterRequest request) {
         boolean userExists = userRepository.existsByEmail(request.email());
         if (userExists) {
