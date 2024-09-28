@@ -25,7 +25,6 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-
     public ApiResponse saveAdmin(RegisterRequest request) {
         if (userRepository.existsByEmail(request.email())) {
             return new ApiResponse("Email already in use", HttpStatus.BAD_REQUEST);
@@ -74,7 +73,6 @@ public class UserService {
                 .build();
         return new ApiResponse("Success", HttpStatus.OK,responseUser);
     }
-
 
     public List<ResponseUser> toResponseUser(List<User> users){
        List<ResponseUser> users1 =  new ArrayList<>();

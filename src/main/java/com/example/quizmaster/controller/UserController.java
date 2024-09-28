@@ -50,7 +50,7 @@ public class UserController {
     }
 
     @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN','ROLE_ADMIN','ROLE_USER')")
-    @Operation(summary = "Userni uzini profilini kurish")
+    @Operation(summary = "Show my Profile", description = "Show my Profile")
     @GetMapping("/get/me")
     public ResponseEntity<ApiResponse> getMe(@CurrentUser User user){
         ApiResponse me = userService.getMe(user);
