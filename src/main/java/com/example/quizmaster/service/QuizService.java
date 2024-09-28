@@ -17,8 +17,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -86,16 +88,25 @@ public class QuizService {
         return new ApiResponse("Quiz deleted successfully", HttpStatus.OK);
     }
 
-    public ApiResponse startTest(Long quizId) {
-        Quiz quiz = quizRepository.findById(quizId).orElse(null);
-        if (quiz == null) {
+    public ApiResponse getRandomQuestionsForQuiz(Long quiz) {
+        Quiz quiz1 = quizRepository.findById(quiz).orElse(null);
+        if (quiz1 == null) {
             return new ApiResponse("Quiz not found", HttpStatus.NOT_FOUND);
         }
 
-        List<Question> allByQuizId = questionRepository.findAllByQuizId(quiz.getId());
-        List<ResponseQuestion> responseQuestions = questionService.toResponseQuestion(allByQuizId);
-        return new ApiResponse("Test started successfully", HttpStatus.OK, responseQuestions);
+        List<Question> allQuestions = questionRepository.findAllByQuizId(quiz);
+        List<ResponseQuestion> responseQuestions = questionService.toResponseQuestion(allQuestions);
+        Collections.shuffle(responseQuestions);
+
+        int questionCount = quiz1.getQuestionCount();
+
+        if (responseQuestions.size() > questionCount) {
+            return new ApiResponse("Success", HttpStatus.OK, responseQuestions.subList(0, questionCount));
+        }
+
+        return new ApiResponse("Insufficient number of questions available", HttpStatus.CONFLICT);
     }
+
 
     public ApiResponse passTest(List<ReqPassTest> passTestList, User user, Long quizId) {
         Quiz quiz = quizRepository.findById(quizId).orElse(null);
@@ -114,17 +125,33 @@ public class QuizService {
                         .anyMatch(answer -> answer.getId().equals(reqPassTest.getAnswerId())))
                 .count();
 
+        LocalDateTime startTime = LocalDateTime.now();
+
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        LocalDateTime finishTime = LocalDateTime.now();
+
+        Long timeTakenSeconds = Duration.between(startTime, finishTime).getSeconds();
+
         Result result = Result.builder()
                 .correctAnswers((int) correctCountAnswers)
                 .quiz(quiz)
                 .totalQuestion(passTestList.size())
                 .user(user)
-                .timeTaken(LocalDateTime.now())
+                .startTime(startTime)
+                .finishTime(finishTime)
+                .timeTaken(timeTakenSeconds)
                 .build();
 
         resultRepository.save(result);
         return new ApiResponse("Test passed successfully", HttpStatus.OK);
     }
+
+
 
     public ApiResponse getOne(Long id){
         Quiz quiz = quizRepository.findById(id).orElse(null);

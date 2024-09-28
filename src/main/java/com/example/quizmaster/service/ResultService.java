@@ -32,7 +32,9 @@ public class ResultService {
                         .build())
                 .collect(Collectors.toList());
 
-        return new ApiResponse("Successfully retrieved results", HttpStatus.OK, resultList);
+        return new ApiResponse("Successfully retrieved user results", HttpStatus.OK, resultList);
     }
+
+
 
 }
