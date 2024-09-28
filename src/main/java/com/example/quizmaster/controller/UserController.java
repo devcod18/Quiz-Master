@@ -52,8 +52,19 @@ public class UserController {
     @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN','ROLE_ADMIN','ROLE_USER')")
     @Operation(summary = "Show my Profile", description = "Show my Profile")
     @GetMapping("/get/me")
-    public ResponseEntity<ApiResponse> getMe(@CurrentUser User user){
+    public ResponseEntity<ApiResponse> getMe(@CurrentUser User user) {
         ApiResponse me = userService.getMe(user);
         return ResponseEntity.ok(me);
     }
+
+    @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN', 'ROLE_ADMIN')")
+    @Operation(summary = "Get all Users", description = "Fetches a paginated list of all admin users")
+    @GetMapping("all//user")
+    public ResponseEntity<ApiResponse> getAllUsers(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "5") int size) {
+        ApiResponse allUsers = userService.getAllUsers(page, size);
+        return ResponseEntity.ok(allUsers);
+    }
+
 }

@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -42,7 +43,7 @@ public class UserService {
         return new ApiResponse("Admin created successfully", HttpStatus.CREATED);
     }
 
-    public ApiResponse getAllAdmins(int page, int size){
+    public ApiResponse getAllAdmins(int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
         Page<User> admins = userRepository.findAllByRole(RoleEnum.ROLE_ADMIN, pageRequest);
         List<ResponseUser> user = toResponseUser(admins.getContent());
@@ -55,13 +56,29 @@ public class UserService {
                 .data(user)
                 .build();
 
-        return new ApiResponse(pageable);
+        return new ApiResponse("Retrieved all Admins", HttpStatus.OK, pageable);
     }
 
-    public ApiResponse searchUserByFirstName(String name){
+    public ApiResponse searchUserByFirstName(String name) {
         List<User> allUsersSearch = userRepository.findAllUsersSearch(name);
         List<ResponseUser> responseUsers = toResponseUser(allUsersSearch);
         return new ApiResponse(responseUsers);
+    }
+
+    public ApiResponse getAllUsers(int size, int page) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<User> admins = userRepository.findAllByRole(RoleEnum.ROLE_USER, pageRequest);
+        List<ResponseUser> user = toResponseUser(admins.getContent());
+
+        Pageable pageable = Pageable.builder()
+                .page(admins.getNumber())
+                .size(admins.getSize())
+                .totalPage(admins.getTotalPages())
+                .totalElements(admins.getTotalElements())
+                .data(user)
+                .build();
+
+        return new ApiResponse("Retrieved all Users", HttpStatus.OK, pageable);
     }
 
     public ApiResponse getMe(User user) {
@@ -71,11 +88,11 @@ public class UserService {
                 .lastName(user.getLastName())
                 .role(user.getRole().name())
                 .build();
-        return new ApiResponse("Success", HttpStatus.OK,responseUser);
+        return new ApiResponse("Success", HttpStatus.OK, responseUser);
     }
 
-    public List<ResponseUser> toResponseUser(List<User> users){
-       List<ResponseUser> users1 =  new ArrayList<>();
+    public List<ResponseUser> toResponseUser(List<User> users) {
+        List<ResponseUser> users1 = new ArrayList<>();
         for (User admin : users) {
             ResponseUser responseUser = ResponseUser.builder()
                     .email(admin.getEmail())
