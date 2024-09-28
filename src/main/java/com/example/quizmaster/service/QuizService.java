@@ -107,7 +107,6 @@ public class QuizService {
         return new ApiResponse("Insufficient number of questions available", HttpStatus.CONFLICT);
     }
 
-
     public ApiResponse passTest(List<ReqPassTest> passTestList, User user, Long quizId) {
         Quiz quiz = quizRepository.findById(quizId).orElse(null);
         if (quiz == null) {
@@ -125,32 +124,16 @@ public class QuizService {
                         .anyMatch(answer -> answer.getId().equals(reqPassTest.getAnswerId())))
                 .count();
 
-        LocalDateTime startTime = LocalDateTime.now();
-
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-
-        LocalDateTime finishTime = LocalDateTime.now();
-
-        Long timeTakenSeconds = Duration.between(startTime, finishTime).getSeconds();
-
         Result result = Result.builder()
                 .correctAnswers((int) correctCountAnswers)
                 .quiz(quiz)
                 .totalQuestion(passTestList.size())
                 .user(user)
-                .startTime(startTime)
-                .finishTime(finishTime)
-                .timeTaken(timeTakenSeconds)
                 .build();
 
         resultRepository.save(result);
         return new ApiResponse("Test passed successfully", HttpStatus.OK);
     }
-
 
 
     public ApiResponse getOne(Long id){

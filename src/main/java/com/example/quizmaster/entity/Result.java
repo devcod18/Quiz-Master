@@ -26,9 +26,8 @@ public class Result {
     @Column(nullable = false)
     private int correctAnswers;
 
-    private LocalDateTime startTime;
-    private LocalDateTime finishTime;
-    private Long timeTaken;
+    @Column(nullable = false)
+    private LocalDateTime timeTaken;
 
     @ManyToOne
     private Quiz quiz;
