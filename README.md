@@ -13,7 +13,7 @@ Avtomatik baholash tizimi: Testlar tugagach, avtomatik baholash va natijalarni t
 Responsive dizayn: Barcha qurilmalarda ishlash uchun qulay interfeys.
 
 # Texnologiyalar:
-  # Backend: Java, Spring Boot
-  # Frontend: HTML, CSS, JavaScript
-  # Ma'lumotlar bazasi: PostgreSQL
-  # Version Control: Git
+  Backend: Java, Spring Boot
+  Frontend: HTML, CSS, JavaScript
+  Ma'lumotlar bazasi: PostgreSQL
+  Version Control: Git
