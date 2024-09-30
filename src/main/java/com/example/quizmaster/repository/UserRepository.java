@@ -24,6 +24,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByRole(RoleEnum role);
 
+    Optional<User> findById(Long id);
+
 
     @Query(value = "select * from users where first_name ilike CONCAT(:name, '%')", nativeQuery = true)
     List<User> findAllUsersSearch(@Param("name") String name);

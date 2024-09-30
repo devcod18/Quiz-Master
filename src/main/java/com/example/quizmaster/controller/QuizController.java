@@ -57,7 +57,7 @@ public class QuizController {
     @Operation(summary = "Start a test", description = "Allows users to start a test for a specific quiz identified by quiz ID.")
     @GetMapping("/start/test/{quizId}")
     public ResponseEntity<ApiResponse> startTest(@PathVariable Long quizId) {
-        ApiResponse apiResponse = service.startTest(quizId);
+        ApiResponse apiResponse = service.getRandomQuestionsForQuiz(quizId);
         return ResponseEntity.ok(apiResponse);
     }
 
@@ -69,5 +69,12 @@ public class QuizController {
                                                 @PathVariable Long quizId) {
         ApiResponse apiResponse = service.passTest(reqPassTestList, user, quizId);
         return ResponseEntity.ok(apiResponse);
+    }
+
+    @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN', 'ROLE_ADMIN')")
+    @PutMapping("/getOne/{quizId}")
+    public ResponseEntity<ApiResponse> getOne(@PathVariable Long quizId){
+        ApiResponse one = service.getOne(quizId);
+        return ResponseEntity.ok(one);
     }
 }

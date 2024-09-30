@@ -17,8 +17,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,6 +33,7 @@ public class QuizService {
     private final QuestionService questionService;
     private final ResultRepository resultRepository;
     private final AnswerRepository answerRepository;
+
     public ApiResponse save(RequestQuiz requestQuiz) {
 
         Quiz quiz = Quiz.builder()
@@ -55,9 +58,6 @@ public class QuizService {
 
         Pageable pageable = Pageable.builder()
                 .page(page)
-
-
-
                 .size(size)
                 .totalPage(quizPage.getTotalPages())
                 .totalElements(quizPage.getTotalElements())
@@ -88,15 +88,23 @@ public class QuizService {
         return new ApiResponse("Quiz deleted successfully", HttpStatus.OK);
     }
 
-    public ApiResponse startTest(Long quizId) {
-        Quiz quiz = quizRepository.findById(quizId).orElse(null);
-        if (quiz == null) {
+    public ApiResponse getRandomQuestionsForQuiz(Long quiz) {
+        Quiz quiz1 = quizRepository.findById(quiz).orElse(null);
+        if (quiz1 == null) {
             return new ApiResponse("Quiz not found", HttpStatus.NOT_FOUND);
         }
 
-        List<Question> allByQuizId = questionRepository.findAllByQuizId(quiz.getId());
-        List<ResponseQuestion> responseQuestions = questionService.toResponseQuestion(allByQuizId);
-        return new ApiResponse("Test started successfully", HttpStatus.OK, responseQuestions);
+        List<Question> allQuestions = questionRepository.findAllByQuizId(quiz);
+        List<ResponseQuestion> responseQuestions = questionService.toResponseQuestion(allQuestions);
+        Collections.shuffle(responseQuestions);
+
+        int questionCount = quiz1.getQuestionCount();
+
+        if (responseQuestions.size() > questionCount) {
+            return new ApiResponse("Success", HttpStatus.OK, responseQuestions.subList(0, questionCount));
+        }
+
+        return new ApiResponse("Insufficient number of questions available", HttpStatus.CONFLICT);
     }
 
     public ApiResponse passTest(List<ReqPassTest> passTestList, User user, Long quizId) {
@@ -121,11 +129,31 @@ public class QuizService {
                 .quiz(quiz)
                 .totalQuestion(passTestList.size())
                 .user(user)
-                .timeTaken(LocalDateTime.now())
                 .build();
 
         resultRepository.save(result);
         return new ApiResponse("Test passed successfully", HttpStatus.OK);
+    }
+
+
+    public ApiResponse getOne(Long id){
+        Quiz quiz = quizRepository.findById(id).orElse(null);
+
+        if (quiz == null) {
+            return new ApiResponse("Quiz not found with this id: " + id, HttpStatus.NOT_FOUND);
+        }
+
+        ResponseQuiz responseQuiz = ResponseQuiz.builder()
+                .id(quiz.getId())
+                .title(quiz.getTitle())
+                .description(quiz.getDescription())
+                .createdAt(quiz.getCreatedAt())
+                .timeLimit(quiz.getTimeLimit())
+                .questionCount(quiz.getQuestionCount())
+                .build();
+
+        return new ApiResponse("Quiz found", HttpStatus.OK, responseQuiz);
+
     }
 
     private ResponseQuiz mapToResponseQuiz(Quiz quiz) {

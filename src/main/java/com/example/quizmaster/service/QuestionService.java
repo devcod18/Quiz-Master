@@ -1,6 +1,5 @@
 package com.example.quizmaster.service;
 
-
 import com.example.quizmaster.entity.Answer;
 import com.example.quizmaster.entity.Question;
 import com.example.quizmaster.exception.ResourceNotFoundException;
@@ -100,7 +99,8 @@ public class QuestionService {
 
         List<Answer> existingAnswers = question.getAnswers();
         existingAnswers.stream()
-                .filter(existingAnswer -> updatedAnswers.stream().noneMatch(updatedAnswer -> updatedAnswer.getId().equals(existingAnswer.getId())))
+                .filter(existingAnswer -> updatedAnswers.stream()
+                        .noneMatch(updatedAnswer -> updatedAnswer.getId().equals(existingAnswer.getId())))
                 .forEach(answerRepository::delete);
 
         question.setAnswers(updatedAnswers);

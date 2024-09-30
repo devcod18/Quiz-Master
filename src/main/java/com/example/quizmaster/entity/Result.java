@@ -26,6 +26,7 @@ public class Result {
     @Column(nullable = false)
     private int correctAnswers;
 
+    @Column(nullable = false)
     private LocalDateTime timeTaken;
 
     @ManyToOne
