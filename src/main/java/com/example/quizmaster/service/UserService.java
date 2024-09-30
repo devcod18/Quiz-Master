@@ -36,6 +36,7 @@ public class UserService {
                 .firstName(request.firstName())
                 .lastName(request.lastName())
                 .role(RoleEnum.ROLE_ADMIN)
+                .enabled(true)
                 .build();
 
         userRepository.save(user);
