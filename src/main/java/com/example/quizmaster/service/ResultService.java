@@ -1,6 +1,5 @@
 package com.example.quizmaster.service;
 
-import com.example.quizmaster.entity.Result;
 import com.example.quizmaster.entity.User;
 import com.example.quizmaster.payload.ApiResponse;
 import com.example.quizmaster.payload.response.ResponseResults;
@@ -9,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,13 +16,14 @@ import java.util.stream.Collectors;
 public class ResultService {
     private final ResultRepository resultRepository;
 
+    // test natijasini olish
     public ApiResponse getUserResults(User user) {
         List<ResponseResults> resultList = resultRepository
                 .findAllByUserId(user.getId())
                 .stream()
                 .map(result -> ResponseResults.builder()
                         .id(result.getId())
-                        .timeTaken(result.getTimeTaken())
+                        .timeTaken(result.formatTimeTaken())
                         .correctAnswers(result.getCorrectAnswers())
                         .quiz(result.getQuiz().getId())
                         .totalQuestion(result.getTotalQuestion())
@@ -34,6 +33,4 @@ public class ResultService {
 
         return new ApiResponse("Successfully retrieved user results", HttpStatus.OK, resultList);
     }
-
-
 }

@@ -4,7 +4,7 @@ import com.example.quizmaster.entity.Answer;
 import com.example.quizmaster.entity.Question;
 import com.example.quizmaster.exception.ResourceNotFoundException;
 import com.example.quizmaster.payload.ApiResponse;
-import com.example.quizmaster.payload.Pageable;
+import com.example.quizmaster.payload.CustomPageable;
 import com.example.quizmaster.payload.request.RequestAnswer;
 import com.example.quizmaster.payload.request.RequestQuestion;
 import com.example.quizmaster.payload.response.ResponseAnswer;
@@ -29,6 +29,7 @@ public class QuestionService {
     private final QuizRepository quizRepository;
     private final AnswerRepository answerRepository;
 
+    // savollarni saqlash
     public ApiResponse saveQuestion(RequestQuestion requestQuestion) {
         Question question = Question.builder()
                 .question_text(requestQuestion.getText())
@@ -54,12 +55,13 @@ public class QuestionService {
         return new ApiResponse("Question saved successfully", HttpStatus.CREATED);
     }
 
+    // barcha savolni olish
     public ApiResponse getAll(int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
         Page<Question> questionPage = questionRepository.findAll(pageRequest);
         List<ResponseQuestion> responseQuestions = toResponseQuestion(questionPage.getContent());
 
-        Pageable pageableResponse = Pageable.builder()
+        CustomPageable pageableResponse = CustomPageable.builder()
                 .size(size)
                 .page(page)
                 .totalPage(questionPage.getTotalPages())
@@ -71,6 +73,7 @@ public class QuestionService {
 
     }
 
+    // savolni yangilash
     public ApiResponse updateQuestion(Long id, RequestQuestion requestQuestion) {
         Question question = questionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Question not found"));
@@ -110,7 +113,7 @@ public class QuestionService {
         return new ApiResponse("Question updated successfully", HttpStatus.OK);
     }
 
-
+    // savolni o'chirish
     public ApiResponse deleteQuestion(Long id) {
         Question question = questionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Question not found"));
@@ -122,48 +125,27 @@ public class QuestionService {
         return new ApiResponse("Question deleted successfully", HttpStatus.OK);
     }
 
-    public ApiResponse getOne(Long id, List<Question> questions) {
-        Question question = questionRepository.findById(id).orElse(null);
-        if (question == null) {
-            return new ApiResponse("Question not found", HttpStatus.NOT_FOUND);
-        }
 
-        List<ResponseQuestion> responseQuestions = new ArrayList<>();
+    // savolni idi bo'yicha olish
+    public ApiResponse getOne(Long id) {
+        Question question = questionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Question not found"));
 
-        for (Question question1 : questions) {
-            List<ResponseAnswer> responseAnswers = new ArrayList<>();
+        ResponseQuestion responseQuestion = (ResponseQuestion) toResponseQuestion((List<Question>) question);
 
-            for (Answer answer : question1.getAnswers()) {
-                ResponseAnswer responseAnswer = ResponseAnswer.builder()
-                        .id(answer.getId())
-                        .text(answer.getAnswerText())
-                        .isCorrect(answer.getIsCorrect())
-                        .build();
-
-                responseAnswers.add(responseAnswer);
-            }
-
-            ResponseQuestion responseQuestion = ResponseQuestion.builder()
-                    .id(question1.getId())
-                    .text(question1.getQuestion_text())
-                    .answers(responseAnswers)
-                    .quizId(question1.getQuiz().getId())
-                    .build();
-
-            responseQuestions.add(responseQuestion);
-        }
-
-        return new ApiResponse("Success", HttpStatus.OK, responseQuestions);
+        return new ApiResponse("Question retrieved successfully", HttpStatus.OK, responseQuestion);
     }
 
-
+    // question obektini response qilish
     public List<ResponseQuestion> toResponseQuestion(List<Question> questions) {
         List<ResponseQuestion> responseQuestions = new ArrayList<>();
 
+        // har bir question obyektlarni korish uchun
         for (Question question : questions) {
             List<ResponseAnswer> responseAnswers = new ArrayList<>();
-
+            // question boyicha answer ni olish
             for (Answer answer : question.getAnswers()) {
+                // answer obyektini response qilish
                 ResponseAnswer responseAnswer = ResponseAnswer.builder()
                         .id(answer.getId())
                         .text(answer.getAnswerText())
@@ -172,14 +154,14 @@ public class QuestionService {
 
                 responseAnswers.add(responseAnswer);
             }
-
+            // question obyektni response qilish
             ResponseQuestion responseQuestion = ResponseQuestion.builder()
                     .id(question.getId())
                     .text(question.getQuestion_text())
                     .answers(responseAnswers)
                     .quizId(question.getQuiz().getId())
                     .build();
-
+            // responseQuestion obyektini ruyxatga qoshish
             responseQuestions.add(responseQuestion);
         }
 

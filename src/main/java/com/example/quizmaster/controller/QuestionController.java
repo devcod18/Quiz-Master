@@ -4,9 +4,7 @@ import com.example.quizmaster.entity.Question;
 import com.example.quizmaster.payload.ApiResponse;
 import com.example.quizmaster.payload.request.RequestQuestion;
 import com.example.quizmaster.service.QuestionService;
-import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,21 +16,24 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/question")
-@Tag(name = "Question Controller", description = "Operations related to managing quiz questions")
+@Tag(name = "Question Controller",
+        description = "Operations related to managing quiz questions")
 public class QuestionController {
 
     private final QuestionService questionService;
 
-    @Operation(summary = "Save a new question", description = "Allows saving a new question in the quiz system")
-    @PostMapping("/save")
+    @Operation(summary = "Save a new question",
+            description = "Allows saving a new question in the quiz system")
+    @PostMapping("/saveQuestion")
     public ResponseEntity<ApiResponse> save(
             @RequestBody RequestQuestion question) {
         ApiResponse apiResponse = questionService.saveQuestion(question);
         return new ResponseEntity<>(apiResponse, apiResponse.getCode());
     }
 
-    @Operation(summary = "Get all questions", description = "Retrieve a paginated list of all quiz questions")
-    @GetMapping("/get")
+    @Operation(summary = "Get all questions",
+            description = "Retrieve a paginated list of all quiz questions")
+    @GetMapping("/getAllQuestion")
     public ResponseEntity<ApiResponse> getAllQuestions(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -40,29 +41,41 @@ public class QuestionController {
         return new ResponseEntity<>(response, response.getCode());
     }
 
-    @Operation(summary = "Update a question", description = "Update an existing question by its ID")
-    @PutMapping("/{id}")
+    @Operation(summary = "Update a question",
+            description = "Update an existing question by its ID")
+    @PutMapping("/updateQuestion{questionId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<ApiResponse> updateQuestion(@PathVariable Long id,
+    public ResponseEntity<ApiResponse> updateQuestion(@PathVariable Long questionId,
                                                       @RequestBody RequestQuestion requestQuestion) {
-        ApiResponse response = questionService.updateQuestion(id, requestQuestion);
+        ApiResponse response = questionService.updateQuestion(questionId, requestQuestion);
         return new ResponseEntity<>(response, response.getCode());
     }
 
-    @Operation(summary = "Delete a question", description = "Delete a question from the quiz system by its ID")
-    @DeleteMapping("/{id}")
+    @Operation(summary = "Delete a question",
+            description = "Delete a question from the quiz system by its ID")
+    @DeleteMapping("/deleteQuestion{questionId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ApiResponse> deleteQuestion(
-            @PathVariable Long id) {
-        ApiResponse response = questionService.deleteQuestion(id);
+            @PathVariable Long questionId) {
+        ApiResponse response = questionService.deleteQuestion(questionId);
         return new ResponseEntity<>(response, response.getCode());
     }
 
-
-    @GetMapping("/getOne/{id}")
+    @Operation(summary = "Get question by ID",
+            description = "Retrieves a question's details by its ID for authorized users.")
     @PreAuthorize("hasAnyRole('ROLE_USER,ROLE_ADMIN,ROLE_SUPER_ADMIN')")
-    public ResponseEntity<ApiResponse> getOneQuestion(@PathVariable Long id, @RequestParam List<Question> questions) {
-        ApiResponse response = questionService.getOne(id, questions);
+    @GetMapping("/getOne/{questionId}")
+    public ResponseEntity<ApiResponse> getOneQuestion(@PathVariable Long questionId,
+                                                      @RequestParam List<Question> questions) {
+        ApiResponse response = questionService.getOne(questionId);
         return new ResponseEntity<>(response, response.getCode());
+    }
+    @Operation( summary = "Get a question by ID",
+            description = "Retrieve a specific question from the quiz system by its ID")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_SUPER_ADMIN')")
+    @GetMapping("/getOneQuestion{questionId}")
+    public ResponseEntity<ApiResponse> getOneQuestion(@PathVariable Long questionId) {
+        ApiResponse apiResponse = questionService.getOne(questionId);
+        return new ResponseEntity<>(apiResponse, apiResponse.getCode());
     }
 }

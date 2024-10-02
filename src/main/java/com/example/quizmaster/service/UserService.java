@@ -3,11 +3,10 @@ package com.example.quizmaster.service;
 import com.example.quizmaster.entity.User;
 import com.example.quizmaster.entity.enums.RoleEnum;
 import com.example.quizmaster.payload.ApiResponse;
-import com.example.quizmaster.payload.Pageable;
+import com.example.quizmaster.payload.CustomPageable;
 import com.example.quizmaster.payload.RegisterRequest;
 import com.example.quizmaster.payload.response.ResponseUser;
 import com.example.quizmaster.repository.UserRepository;
-import io.swagger.annotations.Api;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -27,6 +26,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    // admin saqlash
     public ApiResponse saveAdmin(RegisterRequest request) {
         if (userRepository.existsByEmail(request.email())) {
             return new ApiResponse("Email already in use", HttpStatus.BAD_REQUEST);
@@ -44,12 +44,13 @@ public class UserService {
         return new ApiResponse("Admin created successfully", HttpStatus.CREATED);
     }
 
+    // barcha adminlar
     public ApiResponse getAllAdmins(int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
         Page<User> admins = userRepository.findAllByRole(RoleEnum.ROLE_ADMIN, pageRequest);
         List<ResponseUser> user = toResponseUser(admins.getContent());
 
-        Pageable pageable = Pageable.builder()
+        CustomPageable pageable = CustomPageable.builder()
                 .page(admins.getNumber())
                 .size(admins.getSize())
                 .totalPage(admins.getTotalPages())
@@ -60,18 +61,24 @@ public class UserService {
         return new ApiResponse("Retrieved all Admins", HttpStatus.OK, pageable);
     }
 
+    // user qidiruv
     public ApiResponse searchUserByFirstName(String name) {
         List<User> allUsersSearch = userRepository.findAllUsersSearch(name);
         List<ResponseUser> responseUsers = toResponseUser(allUsersSearch);
         return new ApiResponse(responseUsers);
     }
 
+    // barchha userni olish
     public ApiResponse getAllUsers(int size, int page) {
+        if (size < 1) {
+            size = 1;  // minimal qiymat
+        }
+
         PageRequest pageRequest = PageRequest.of(page, size);
         Page<User> admins = userRepository.findAllByRole(RoleEnum.ROLE_USER, pageRequest);
         List<ResponseUser> user = toResponseUser(admins.getContent());
 
-        Pageable pageable = Pageable.builder()
+        CustomPageable pageable = CustomPageable.builder()
                 .page(admins.getNumber())
                 .size(admins.getSize())
                 .totalPage(admins.getTotalPages())
@@ -82,6 +89,7 @@ public class UserService {
         return new ApiResponse("Retrieved all Users", HttpStatus.OK, pageable);
     }
 
+    // profilni korish
     public ApiResponse getMe(User user) {
         ResponseUser responseUser = ResponseUser.builder()
                 .email(user.getEmail())
@@ -92,6 +100,7 @@ public class UserService {
         return new ApiResponse("Success", HttpStatus.OK, responseUser);
     }
 
+    // userni yangilash
     public ApiResponse updateUser(Long userId, RegisterRequest request) {
 
         Optional<User> optionalUser = userRepository.findById(userId);
@@ -113,6 +122,7 @@ public class UserService {
         return new ApiResponse("User successfully updated", HttpStatus.OK);
     }
 
+    // id boyicha user olish
     public ApiResponse getOne(Long id) {
         User user = userRepository.findById(id).orElse(null);
         if (user == null) {
@@ -130,6 +140,7 @@ public class UserService {
         return new ApiResponse("User found", HttpStatus.OK, responseUser);
     }
 
+    // userni listga saqlash
     public List<ResponseUser> toResponseUser(List<User> users) {
         List<ResponseUser> users1 = new ArrayList<>();
         for (User admin : users) {

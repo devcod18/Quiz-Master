@@ -24,6 +24,7 @@ public class AuthService {
     private final JwtProvider jwtProvider;
     private final EmailSenderService emailSenderService;
 
+    // userni register qilish
     public ApiResponse registerUser(RegisterRequest request) {
         boolean userExists = userRepository.existsByEmail(request.email());
         if (userExists) {
@@ -43,6 +44,7 @@ public class AuthService {
         return new ApiResponse("User successfully registered", HttpStatus.CREATED, null);
     }
 
+    // aktivatsiya kodini tekshirish
     public ApiResponse checkCode(Integer code) {
         Optional<User> userOptional = userRepository.findByActivationCode(code);
         if (userOptional.isPresent()) {
@@ -57,6 +59,7 @@ public class AuthService {
         return new ApiResponse("Invalid activation code", HttpStatus.NOT_FOUND, null);
     }
 
+    // umimiy login
     public ApiResponse login(LoginRequest request) {
         Optional<User> userOptional = userRepository.findByEmail(request.email());
 
@@ -75,6 +78,7 @@ public class AuthService {
         return new ApiResponse("Email not found", HttpStatus.NOT_FOUND, null);
     }
 
+    // activatsiya kodini yaratish
     private int generateFiveDigitNumber() {
         Random rand = new Random();
         return rand.nextInt(90000) + 10000;

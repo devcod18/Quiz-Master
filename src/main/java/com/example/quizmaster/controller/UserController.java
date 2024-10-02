@@ -20,9 +20,9 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
-
-    @Operation(summary = "Create new admin", description = "Allows super admin to create a new admin user")
     @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
+    @Operation(summary = "Create new admin",
+            description = "Allows super admin to create a new admin user")
     @PostMapping("/save-admin")
     public ResponseEntity<ApiResponse> saveAdmin(
             @RequestBody RegisterRequest request) {
@@ -30,8 +30,9 @@ public class UserController {
         return ResponseEntity.status(apiResponse.getCode()).body(apiResponse);
     }
 
-    @Operation(summary = "Fetch all admins", description = "Fetches a paginated list of admin users")
     @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
+    @Operation(summary = "Fetch all admins",
+            description = "Fetches a paginated list of admin users")
     @GetMapping("/admins")
     public ResponseEntity<ApiResponse> getAllAdmins(
             @RequestParam(name = "page", defaultValue = "0") int page,
@@ -40,7 +41,8 @@ public class UserController {
         return ResponseEntity.ok(allAdmins);
     }
 
-    @Operation(summary = "Search users by name", description = "Searches users by their first name")
+    @Operation(summary = "Search users by name",
+            description = "Searches users by their first name")
     @GetMapping("/search")
     public ResponseEntity<ApiResponse> search(
             @RequestParam String name,
@@ -49,7 +51,8 @@ public class UserController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @Operation(summary = "Get my profile", description = "Shows the profile of the currently logged-in user")
+    @Operation(summary = "Get my profile",
+            description = "Shows the profile of the currently logged-in user")
     @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN','ROLE_ADMIN','ROLE_USER')")
     @GetMapping("/get/me")
     public ResponseEntity<ApiResponse> getMe(@CurrentUser User user) {
@@ -57,8 +60,9 @@ public class UserController {
         return ResponseEntity.ok(me);
     }
 
-    @Operation(summary = "Fetch all users", description = "Fetches a paginated list of all users")
     @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN', 'ROLE_ADMIN')")
+    @Operation(summary = "Fetch all users",
+            description = "Fetches a paginated list of all users")
     @GetMapping("/all/user")
     public ResponseEntity<ApiResponse> getAllUsers(
             @RequestParam(name = "page", defaultValue = "0") int page,
@@ -67,8 +71,9 @@ public class UserController {
         return ResponseEntity.ok(allUsers);
     }
 
-    @Operation(summary = "Update user profile", description = "Allows users to update their profile")
     @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_USER')")
+    @Operation(summary = "Update user profile",
+            description = "Allows users to update their profile")
     @PutMapping("/update/{userId}")
     public ResponseEntity<ApiResponse> updateProfile(@PathVariable Long userId,
                                                      @RequestBody RegisterRequest request) {
@@ -77,6 +82,8 @@ public class UserController {
     }
 
     @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN', 'ROLE_ADMIN')")
+    @Operation(summary = "Get one user by ID",
+            description = "Fetches details of a single user by its user ID for users with SUPER_ADMIN or ADMIN roles.")
     @PutMapping("/getOne/{userId}")
     public ResponseEntity<ApiResponse> getOne(@PathVariable Long userId){
         ApiResponse one = userService.getOne(userId);
