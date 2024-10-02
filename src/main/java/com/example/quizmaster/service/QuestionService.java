@@ -122,6 +122,41 @@ public class QuestionService {
         return new ApiResponse("Question deleted successfully", HttpStatus.OK);
     }
 
+    public ApiResponse getOne(Long id, List<Question> questions) {
+        Question question = questionRepository.findById(id).orElse(null);
+        if (question == null) {
+            return new ApiResponse("Question not found", HttpStatus.NOT_FOUND);
+        }
+
+        List<ResponseQuestion> responseQuestions = new ArrayList<>();
+
+        for (Question question1 : questions) {
+            List<ResponseAnswer> responseAnswers = new ArrayList<>();
+
+            for (Answer answer : question1.getAnswers()) {
+                ResponseAnswer responseAnswer = ResponseAnswer.builder()
+                        .id(answer.getId())
+                        .text(answer.getAnswerText())
+                        .isCorrect(answer.getIsCorrect())
+                        .build();
+
+                responseAnswers.add(responseAnswer);
+            }
+
+            ResponseQuestion responseQuestion = ResponseQuestion.builder()
+                    .id(question1.getId())
+                    .text(question1.getQuestion_text())
+                    .answers(responseAnswers)
+                    .quizId(question1.getQuiz().getId())
+                    .build();
+
+            responseQuestions.add(responseQuestion);
+        }
+
+        return new ApiResponse("Success", HttpStatus.OK, responseQuestions);
+    }
+
+
     public List<ResponseQuestion> toResponseQuestion(List<Question> questions) {
         List<ResponseQuestion> responseQuestions = new ArrayList<>();
 

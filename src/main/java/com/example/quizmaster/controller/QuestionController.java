@@ -1,8 +1,10 @@
 package com.example.quizmaster.controller;
 
+import com.example.quizmaster.entity.Question;
 import com.example.quizmaster.payload.ApiResponse;
 import com.example.quizmaster.payload.request.RequestQuestion;
 import com.example.quizmaster.service.QuestionService;
+import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -10,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -51,6 +55,14 @@ public class QuestionController {
     public ResponseEntity<ApiResponse> deleteQuestion(
             @PathVariable Long id) {
         ApiResponse response = questionService.deleteQuestion(id);
+        return new ResponseEntity<>(response, response.getCode());
+    }
+
+
+    @GetMapping("/getOne/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_USER,ROLE_ADMIN,ROLE_SUPER_ADMIN')")
+    public ResponseEntity<ApiResponse> getOneQuestion(@PathVariable Long id, @RequestParam List<Question> questions) {
+        ApiResponse response = questionService.getOne(id, questions);
         return new ResponseEntity<>(response, response.getCode());
     }
 }
