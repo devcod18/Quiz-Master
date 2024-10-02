@@ -76,6 +76,7 @@ public class UserController {
         return ResponseEntity.ok(apiResponse);
     }
 
+    @Operation(summary = "Get user by ID", description = "Retrieves a specific user by their user ID")
     @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN', 'ROLE_ADMIN')")
     @PutMapping("/getOne/{userId}")
     public ResponseEntity<ApiResponse> getOne(@PathVariable Long userId){

@@ -72,6 +72,7 @@ public class QuizController {
     }
 
     @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN', 'ROLE_ADMIN')")
+    @Operation(summary = "Get a specific quiz", description = "Retrieves a single quiz by its ID. Only accessible to super admins and admins.")
     @PutMapping("/getOne/{quizId}")
     public ResponseEntity<ApiResponse> getOne(@PathVariable Long quizId){
         ApiResponse one = service.getOne(quizId);

@@ -58,7 +58,7 @@ public class QuestionController {
         return new ResponseEntity<>(response, response.getCode());
     }
 
-
+    @Operation(summary = "Get a specific question", description = "Retrieves a single question by its ID, with optional filtering based on a list of questions")
     @GetMapping("/getOne/{id}")
     @PreAuthorize("hasAnyRole('ROLE_USER,ROLE_ADMIN,ROLE_SUPER_ADMIN')")
     public ResponseEntity<ApiResponse> getOneQuestion(@PathVariable Long id, @RequestParam List<Question> questions) {
