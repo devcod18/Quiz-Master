@@ -25,11 +25,12 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthService authService;
+    private final EmailSenderService emailSenderService;
 
-    // admin saqlash
     public ApiResponse saveAdmin(RegisterRequest request) {
         if (userRepository.existsByEmail(request.email())) {
-            return new ApiResponse("Email already in use!", HttpStatus.BAD_REQUEST);
+            return new ApiResponse("Email already in use", HttpStatus.BAD_REQUEST);
         }
 
         User user = User.builder()
@@ -41,10 +42,9 @@ public class UserService {
                 .build();
 
         userRepository.save(user);
-        return new ApiResponse("Admin created successfully!", HttpStatus.CREATED);
+        return new ApiResponse("Admin created successfully", HttpStatus.CREATED);
     }
 
-    // barcha adminlar
     public ApiResponse getAllAdmins(int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
         Page<User> admins = userRepository.findAllByRole(RoleEnum.ROLE_ADMIN, pageRequest);
@@ -58,22 +58,16 @@ public class UserService {
                 .data(user)
                 .build();
 
-        return new ApiResponse("Retrieved all Admins!", HttpStatus.OK, pageable);
+        return new ApiResponse("Retrieved all Admins", HttpStatus.OK, pageable);
     }
 
-    // user qidiruv
     public ApiResponse searchUserByFirstName(String name) {
         List<User> allUsersSearch = userRepository.findAllUsersSearch(name);
         List<ResponseUser> responseUsers = toResponseUser(allUsersSearch);
         return new ApiResponse(responseUsers);
     }
 
-    // barchha userni olish
     public ApiResponse getAllUsers(int size, int page) {
-        if (size < 1) {
-            size = 1;  // minimal qiymat
-        }
-
         PageRequest pageRequest = PageRequest.of(page, size);
         Page<User> admins = userRepository.findAllByRole(RoleEnum.ROLE_USER, pageRequest);
         List<ResponseUser> user = toResponseUser(admins.getContent());
@@ -86,10 +80,9 @@ public class UserService {
                 .data(user)
                 .build();
 
-        return new ApiResponse("Retrieved all Users!", HttpStatus.OK, pageable);
+        return new ApiResponse("Retrieved all Users", HttpStatus.OK, pageable);
     }
 
-    // profilni ko'rish
     public ApiResponse getMe(User user) {
         ResponseUser responseUser = ResponseUser.builder()
                 .email(user.getEmail())
@@ -100,12 +93,11 @@ public class UserService {
         return new ApiResponse("Success", HttpStatus.OK, responseUser);
     }
 
-    // userni yangilash
     public ApiResponse updateUser(Long userId, RegisterRequest request) {
 
         Optional<User> optionalUser = userRepository.findById(userId);
         if (optionalUser.isEmpty()) {
-            return new ApiResponse("Incorrect users!", HttpStatus.NOT_FOUND);
+            return new ApiResponse("Foydalanuvchi topilmadi", HttpStatus.NOT_FOUND);
         }
 
         User user = optionalUser.get();
@@ -119,10 +111,9 @@ public class UserService {
 
         userRepository.save(user);
 
-        return new ApiResponse("User successfully updated!", HttpStatus.OK);
+        return new ApiResponse("User successfully updated", HttpStatus.OK);
     }
 
-    // id boyicha user olish
     public ApiResponse getOne(Long id) {
         User user = userRepository.findById(id).orElse(null);
         if (user == null) {
@@ -137,10 +128,41 @@ public class UserService {
                 .build();
 
 
-        return new ApiResponse("User found!", HttpStatus.OK, responseUser);
+        return new ApiResponse("User found", HttpStatus.OK, responseUser);
     }
 
-    // userni list saqlash
+    public ApiResponse sendConfirmationCode(String email) {
+        Optional<User> userOptional = userRepository.findByEmail(email);
+
+        if (userOptional.isEmpty()) {
+            return new ApiResponse("Email not found", HttpStatus.NOT_FOUND);
+        }
+
+        User user = userOptional.get();
+        Integer code = authService.generateFiveDigitNumber();
+        user.setActivationCode(code);
+        emailSenderService.sendEmail(user.getEmail(), "Password reset code", String.valueOf(code));
+
+        return new ApiResponse("Confirmation code sent to your email. Please check and confirm your email!", HttpStatus.OK);
+    }
+
+    public ApiResponse updatePassword(User user, String newPassword) {
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        return new ApiResponse("Password successfully updated", HttpStatus.OK);
+    }
+
+    public ApiResponse resetPasswordWithCode(Integer code, String newPassword) {
+        User user = userRepository.findByActivationCode(code);
+
+        if (user == null) {
+            return new ApiResponse("Invalid confirmation code", HttpStatus.NOT_FOUND);
+        }
+
+        user.setActivationCode(null);
+        return updatePassword(user, newPassword);
+    }
+
     public List<ResponseUser> toResponseUser(List<User> users) {
         List<ResponseUser> users1 = new ArrayList<>();
         for (User admin : users) {
