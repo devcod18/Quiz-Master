@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,6 +34,35 @@ public class ResultService {
 
         return new ApiResponse("Successfully retrieved user results", HttpStatus.OK, resultList);
     }
+
+    public ApiResponse lastTestResult(User user) {
+        // Foydalanuvchining barcha test natijalarini olish
+        List<Result> allResults = resultRepository.findAllByUserId(user.getId());
+
+        // Natijalarni id bo'yicha saralash va eng so'nggi natijani olish
+        Result latestResult = allResults.stream()
+                .max(Comparator.comparing(Result::getId))
+                .orElse(null); // Agar natijalar bo'lmasa, null qaytaradi
+
+        if (latestResult != null) {
+            ResponseResults responseResult = ResponseResults.builder()
+                    .id(latestResult.getId())
+                    .timeTaken(String.valueOf(latestResult.getTimeTaken()))
+                    .correctAnswers(latestResult.getCorrectAnswers())
+                    .quiz(latestResult.getQuiz().getId())
+                    .totalQuestion(latestResult.getTotalQuestion())
+                    .user(latestResult.getUser().getId())
+                    .build();
+
+            return new ApiResponse("Successfully retrieved last test result", HttpStatus.OK, responseResult);
+        } else {
+            return new ApiResponse("No test results found for the user", HttpStatus.NOT_FOUND, null);
+        }
+    }
+
+
+
+
 
 
 }

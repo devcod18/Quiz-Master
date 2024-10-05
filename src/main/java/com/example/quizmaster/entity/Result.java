@@ -2,6 +2,7 @@ package com.example.quizmaster.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 @Entity
@@ -11,7 +12,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class Result {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -34,8 +34,14 @@ public class Result {
     @Column(nullable = false)
     private Long timeTaken;
 
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
     @ManyToOne
     private Quiz quiz;
-
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = LocalDateTime.now();
+    }
 
 }

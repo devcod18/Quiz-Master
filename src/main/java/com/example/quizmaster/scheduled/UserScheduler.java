@@ -15,7 +15,7 @@ import java.util.List;
 public class UserScheduler {
     private final UserRepository userRepository;
 
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 0 * * * *")
     public void DeleteEnableUsers() {
         List<User> allByEnabledIsFalse = userRepository.findAllByEnabledIsFalse();
         userRepository.deleteAll(allByEnabledIsFalse);

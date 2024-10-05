@@ -33,7 +33,7 @@ public class QuizController {
         return new ResponseEntity<>(save, save.getCode());
     }
 
-    @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN', 'ROLE_ADMIN','ROLE_USER')")
     @Operation(summary = "Retrieve all quizzes",
             description = "Retrieves a list of all quizzes with pagination options.")
     @GetMapping("/getAllQuiz")

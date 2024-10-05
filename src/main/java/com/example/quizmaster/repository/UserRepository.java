@@ -22,8 +22,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findById(Long id);
 
-    @Query(value = "select * from users where first_name ilike CONCAT(:name, '%')", nativeQuery = true)
-    List<User> findAllUsersSearch(@Param("name") String name);
+    @Query(value = "SELECT * FROM users WHERE first_name ILIKE CONCAT(:name, '%') AND role = 'ROLE_USER'", nativeQuery = true)
+    List<User> findUsersByFirstName(@Param("name") String name);
 
     List<User> findAllByEnabledIsFalse();
 

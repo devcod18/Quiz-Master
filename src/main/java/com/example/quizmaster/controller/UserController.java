@@ -92,18 +92,24 @@ public class UserController {
         return ResponseEntity.ok(one);
     }
 
-    @PreAuthorize("hasRole('ROLE_USER,ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
+    @Operation(summary = "Confirm user email",
+            description = "Sends a confirmation code to the specified email for verification.")
     @PutMapping("/confirmEmail")
-    public ResponseEntity<ApiResponse> confirmEEmail(@RequestParam String email){
+    public ResponseEntity<ApiResponse> confirmEmail(@Valid @RequestParam String email) {
         ApiResponse response = userService.sendConfirmationCode(email);
         return ResponseEntity.ok(response);
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
+    @Operation(summary = "Update password",
+            description = "Allows the user to reset their password using a confirmation code.")
     @PutMapping("/updatePassword")
-    @PreAuthorize("hasAnyRole()")
-    public ResponseEntity<ApiResponse> updatePassword(@RequestParam Integer code,
-                                                      @RequestParam String newPassword){
-        ApiResponse response = userService.resetPasswordWithCode(code, newPassword);
+    public ResponseEntity<ApiResponse> updatePassword(@Valid @RequestParam Integer code,
+                                                      @RequestParam String newPassword,
+                                                      @RequestParam String confirmPassword) {
+        ApiResponse response = userService.resetPasswordWithCode(code, newPassword, confirmPassword);
         return ResponseEntity.ok(response);
     }
+
 }
