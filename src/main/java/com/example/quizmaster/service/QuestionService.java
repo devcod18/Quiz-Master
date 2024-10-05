@@ -2,9 +2,8 @@ package com.example.quizmaster.service;
 
 import com.example.quizmaster.entity.Answer;
 import com.example.quizmaster.entity.Question;
-import com.example.quizmaster.exception.ResourceNotFoundException;
 import com.example.quizmaster.payload.ApiResponse;
-import com.example.quizmaster.payload.Pageable;
+import com.example.quizmaster.payload.CustomPageable;
 import com.example.quizmaster.payload.request.RequestAnswer;
 import com.example.quizmaster.payload.request.RequestQuestion;
 import com.example.quizmaster.payload.response.ResponseAnswer;
@@ -29,37 +28,51 @@ public class QuestionService {
     private final QuizRepository quizRepository;
     private final AnswerRepository answerRepository;
 
+    // savollarni saqlash
     public ApiResponse saveQuestion(RequestQuestion requestQuestion) {
         Question question = Question.builder()
                 .question_text(requestQuestion.getText())
                 .quiz(quizRepository.findById(requestQuestion.getQuizId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Quiz not found")))
+                        .orElse(null))
                 .build();
 
-        Question save = questionRepository.save(question);
+        Question savedQuestion = questionRepository.save(question);
 
         List<Answer> answers = new ArrayList<>();
+        int correctAnswerCount = 0;
+
         for (RequestAnswer answer : requestQuestion.getAnswerList()) {
-            Answer answer1 = Answer.builder()
+            Answer answerEntity = Answer.builder()
                     .answerText(answer.getText())
                     .isCorrect(answer.isCorrect())
-                    .question(save)
+                    .question(savedQuestion)
                     .build();
-            answers.add(answer1);
 
-            answerRepository.save(answer1);
+            if (answer.isCorrect()) {
+                correctAnswerCount++;
+            }
+
+            answers.add(answerEntity);
+            answerRepository.save(answerEntity);
         }
-        question.setAnswers(answers);
 
-        return new ApiResponse("Question saved successfully", HttpStatus.CREATED);
+        if (correctAnswerCount != 1) {
+            return new ApiResponse("Only one answer must be marked as correct!", HttpStatus.BAD_REQUEST);
+        }
+
+        savedQuestion.setAnswers(answers);
+
+        return new ApiResponse("Question saved successfully!", HttpStatus.CREATED);
     }
 
+
+    // barcha savolni olish
     public ApiResponse getAll(int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
         Page<Question> questionPage = questionRepository.findAll(pageRequest);
         List<ResponseQuestion> responseQuestions = toResponseQuestion(questionPage.getContent());
 
-        Pageable pageableResponse = Pageable.builder()
+        CustomPageable pageableResponse = CustomPageable.builder()
                 .size(size)
                 .page(page)
                 .totalPage(questionPage.getTotalPages())
@@ -67,17 +80,22 @@ public class QuestionService {
                 .data(responseQuestions)
                 .build();
 
-        return new ApiResponse("Questions retrieved successfully", HttpStatus.OK, pageableResponse);
+        return new ApiResponse("Questions retrieved successfully!", HttpStatus.OK, pageableResponse);
 
     }
 
+    // savolni yangilash
     public ApiResponse updateQuestion(Long id, RequestQuestion requestQuestion) {
-        Question question = questionRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Question not found"));
+        Question question = questionRepository.findById(id).orElse(null);
+        if (question == null) {
+            return new ApiResponse("Question not found!", HttpStatus.NOT_FOUND);
+        }
 
         question.setQuestion_text(requestQuestion.getText());
-        question.setQuiz(quizRepository.findById(requestQuestion.getQuizId())
-                .orElseThrow(() -> new ResourceNotFoundException("Quiz not found")));
+        question.setQuiz(quizRepository.findById(requestQuestion.getQuizId()).orElse(null));
+        if (question.getQuiz() == null) {
+            return new ApiResponse("Quiz not found!", HttpStatus.NOT_FOUND);
+        }
 
         List<Answer> updatedAnswers = new ArrayList<>();
         for (RequestAnswer requestAnswer : requestQuestion.getAnswerList()) {
@@ -107,79 +125,63 @@ public class QuestionService {
 
         questionRepository.save(question);
 
-        return new ApiResponse("Question updated successfully", HttpStatus.OK);
+        return new ApiResponse("Question updated successfully!", HttpStatus.OK);
     }
 
-
+    // savolni o'chirish
     public ApiResponse deleteQuestion(Long id) {
-        Question question = questionRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Question not found"));
+        Question question = questionRepository.findById(id).orElse(null);
+        if (question == null) {
+            return new ApiResponse("Question not found!", HttpStatus.NOT_FOUND);
+        }
 
         answerRepository.deleteAll(question.getAnswers());
 
         questionRepository.delete(question);
 
-        return new ApiResponse("Question deleted successfully", HttpStatus.OK);
+        return new ApiResponse("Question deleted successfully!", HttpStatus.OK);
     }
 
-    public ApiResponse getOne(Long id, List<Question> questions) {
+
+    // savolni idi bo'yicha olish
+    public ApiResponse getOne(Long id) {
         Question question = questionRepository.findById(id).orElse(null);
         if (question == null) {
-            return new ApiResponse("Question not found", HttpStatus.NOT_FOUND);
+            return new ApiResponse("Question not found!", HttpStatus.NOT_FOUND);
         }
 
-        List<ResponseQuestion> responseQuestions = new ArrayList<>();
+        ResponseQuestion responseQuestion = (ResponseQuestion) toResponseQuestion((List<Question>) question);
 
-        for (Question question1 : questions) {
-            List<ResponseAnswer> responseAnswers = new ArrayList<>();
-
-            for (Answer answer : question1.getAnswers()) {
-                ResponseAnswer responseAnswer = ResponseAnswer.builder()
-                        .id(answer.getId())
-                        .text(answer.getAnswerText())
-                        .isCorrect(answer.getIsCorrect())
-                        .build();
-
-                responseAnswers.add(responseAnswer);
-            }
-
-            ResponseQuestion responseQuestion = ResponseQuestion.builder()
-                    .id(question1.getId())
-                    .text(question1.getQuestion_text())
-                    .answers(responseAnswers)
-                    .quizId(question1.getQuiz().getId())
-                    .build();
-
-            responseQuestions.add(responseQuestion);
-        }
-
-        return new ApiResponse("Success", HttpStatus.OK, responseQuestions);
+        return new ApiResponse("Question retrieved successfully!", HttpStatus.OK, responseQuestion);
     }
 
-
+    // question obektini response qilish
     public List<ResponseQuestion> toResponseQuestion(List<Question> questions) {
         List<ResponseQuestion> responseQuestions = new ArrayList<>();
 
+        // har bir question obyektlarni korish uchun
         for (Question question : questions) {
             List<ResponseAnswer> responseAnswers = new ArrayList<>();
-
+            // question boyicha answer ni olish
             for (Answer answer : question.getAnswers()) {
+                // answer obyektini response qilish
                 ResponseAnswer responseAnswer = ResponseAnswer.builder()
                         .id(answer.getId())
                         .text(answer.getAnswerText())
                         .isCorrect(answer.getIsCorrect())
+                        .questionId(answer.getQuestion().getId())
                         .build();
 
                 responseAnswers.add(responseAnswer);
             }
-
+            // question obyektni response qilish
             ResponseQuestion responseQuestion = ResponseQuestion.builder()
                     .id(question.getId())
                     .text(question.getQuestion_text())
                     .answers(responseAnswers)
                     .quizId(question.getQuiz().getId())
                     .build();
-
+            // responseQuestion obyektini ruyxatga qoshish
             responseQuestions.add(responseQuestion);
         }
 

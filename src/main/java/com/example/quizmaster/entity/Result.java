@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-
 @Entity
 @Getter
 @Setter
@@ -27,9 +26,16 @@ public class Result {
     private int correctAnswers;
 
     @Column(nullable = false)
-    private LocalDateTime timeTaken;
+    private LocalDateTime startTime;
+
+    @Column(nullable = false)
+    private LocalDateTime endTime;
+
+    @Column(nullable = false)
+    private Long timeTaken;
 
     @ManyToOne
     private Quiz quiz;
+
 
 }

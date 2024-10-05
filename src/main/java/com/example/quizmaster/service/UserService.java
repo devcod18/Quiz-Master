@@ -7,7 +7,7 @@ import com.example.quizmaster.payload.Pageable;
 import com.example.quizmaster.payload.RegisterRequest;
 import com.example.quizmaster.payload.response.ResponseUser;
 import com.example.quizmaster.repository.UserRepository;
-
+import io.swagger.annotations.Api;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -38,7 +38,6 @@ public class UserService {
                 .firstName(request.firstName())
                 .lastName(request.lastName())
                 .role(RoleEnum.ROLE_ADMIN)
-                .enabled(true)
                 .build();
 
         userRepository.save(user);

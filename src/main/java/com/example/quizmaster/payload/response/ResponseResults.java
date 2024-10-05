@@ -1,6 +1,5 @@
 package com.example.quizmaster.payload.response;
 
-import java.time.LocalDateTime;
 import lombok.*;
 
 @AllArgsConstructor
@@ -13,6 +12,6 @@ public class ResponseResults {
     private Long user;
     private int totalQuestion;
     private int correctAnswers;
-    private LocalDateTime timeTaken;
+    private String timeTaken;
     private Long quiz;
 }

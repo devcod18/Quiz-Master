@@ -7,8 +7,7 @@ import lombok.*;
 @Builder
 @Getter
 @Setter
-public class Pageable {
-
+public class CustomPageable {
     private int size;
     private int page;
     private int totalPage;

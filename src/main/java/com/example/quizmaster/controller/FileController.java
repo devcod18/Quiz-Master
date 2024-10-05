@@ -5,7 +5,6 @@ import org.springframework.core.io.Resource;
 import com.example.quizmaster.payload.ApiResponse;
 import com.example.quizmaster.service.FileService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
