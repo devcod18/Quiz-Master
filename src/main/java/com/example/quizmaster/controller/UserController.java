@@ -83,7 +83,6 @@ public class UserController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @Operation(summary = "Get user by ID", description = "Retrieves a specific user by their user ID")
     @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN', 'ROLE_ADMIN')")
     @Operation(summary = "Get one user by ID",
             description = "Fetches details of a single user by its user ID for users with SUPER_ADMIN or ADMIN roles.")
@@ -91,5 +90,20 @@ public class UserController {
     public ResponseEntity<ApiResponse> getOne(@Valid @PathVariable Long userId) {
         ApiResponse one = userService.getOne(userId);
         return ResponseEntity.ok(one);
+    }
+
+    @PreAuthorize("hasRole('ROLE_USER,ROLE_ADMIN')")
+    @PutMapping("/confirmEmail")
+    public ResponseEntity<ApiResponse> confirmEEmail(@RequestParam String email){
+        ApiResponse response = userService.sendConfirmationCode(email);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/updatePassword")
+    @PreAuthorize("hasAnyRole()")
+    public ResponseEntity<ApiResponse> updatePassword(@RequestParam Integer code,
+                                                      @RequestParam String newPassword){
+        ApiResponse response = userService.resetPasswordWithCode(code, newPassword);
+        return ResponseEntity.ok(response);
     }
 }

@@ -17,7 +17,7 @@ import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
-public class AuthService {
+public class    AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -114,7 +114,7 @@ public class AuthService {
     }
 
     // activatsiya kodini yaratish
-    private int generateFiveDigitNumber() {
+    public int generateFiveDigitNumber() {
         Random rand = new Random();
         return rand.nextInt(90000) + 10000;
     }

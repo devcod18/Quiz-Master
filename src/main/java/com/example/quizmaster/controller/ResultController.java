@@ -23,9 +23,17 @@ public class ResultController {
 
     @PreAuthorize("hasRole('ROLE_USER')")
     @Operation(summary = "Retrieve user results", description = "Fetches the results of the authenticated user.")
-    @GetMapping("/userResults")
+    @GetMapping("/resultHistory")
     public ResponseEntity<ApiResponse> getUserResults(@Valid @CurrentUser User user) {
         ApiResponse userResults = resultService.getUserResults(user);
         return ResponseEntity.ok(userResults);
+    }
+
+    @PreAuthorize("hasRole('ROLE_USER')")
+    @GetMapping("getTestResult")
+    @Operation(summary = "Last test result")
+    public ResponseEntity<ApiResponse> getTestResults(@CurrentUser User user) {
+        ApiResponse response = resultService.getUserResults(user);
+        return ResponseEntity.ok(response);
     }
 }
