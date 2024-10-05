@@ -17,32 +17,27 @@ import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
-public class    AuthService {
+public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final EmailSenderService emailSenderService;
 
-    // userni register qilish
     public ApiResponse registerUser(RegisterRequest request) {
-        // email formatini tekshirish
         if (!isValidEmail(request.email())) {
             return new ApiResponse("Invalid email format. Only Gmail addresses are allowed!", HttpStatus.BAD_REQUEST, null);
         }
 
-        // foydalanuvchi mavjudligini tekshirish
         boolean userExists = userRepository.existsByEmail(request.email());
         if (userExists) {
             return new ApiResponse("User with this email already exists!", HttpStatus.BAD_REQUEST, null);
         }
 
-        // tasdiqlash kodini generatsiya qilish
         Integer code = generateFiveDigitNumber();
 
         String name = extractNameFromEmail(request.email());
 
-        // yangi foydalanuvchini yaratish va saqlash
         User user = User.builder()
                 .email(request.email())
                 .firstName(request.firstName())
@@ -53,7 +48,6 @@ public class    AuthService {
                 .build();
         userRepository.save(user);
 
-        // email mazmuni (o'zgaruvchan format)
         String emailContent = String.format(
                 "Hi %s!\n\n" +
                         "We at Quiz Master are excited to welcome you to our platform!\n\n" +
@@ -62,13 +56,11 @@ public class    AuthService {
                         "Best regards! The Quiz Master Team!"
                 , name, code);
 
-        // email yuborish
         emailSenderService.sendEmail(request.email(), "CONFIRM YOUR EMAIL!", emailContent);
 
         return new ApiResponse("User successfully registered!", HttpStatus.CREATED, null);
     }
 
-    // umimiy login
     public ApiResponse login(LoginRequest request) {
         Optional<User> userOptional = userRepository.findByEmail(request.email());
 
@@ -87,7 +79,6 @@ public class    AuthService {
         return new ApiResponse("Email not found", HttpStatus.NOT_FOUND, null);
     }
 
-    // aktivatsiya kodini tekshirish
     public ApiResponse checkCode(Integer code) {
         User userOptional = userRepository.findByActivationCode(code);
         if (userOptional == null) {
@@ -113,7 +104,6 @@ public class    AuthService {
         return email != null && email.matches(emailRegex);
     }
 
-    // activatsiya kodini yaratish
     public int generateFiveDigitNumber() {
         Random rand = new Random();
         return rand.nextInt(90000) + 10000;

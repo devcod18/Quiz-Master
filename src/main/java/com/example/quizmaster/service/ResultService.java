@@ -8,7 +8,6 @@ import com.example.quizmaster.repository.ResultRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,13 +35,11 @@ public class ResultService {
     }
 
     public ApiResponse lastTestResult(User user) {
-        // Foydalanuvchining barcha test natijalarini olish
         List<Result> allResults = resultRepository.findAllByUserId(user.getId());
 
-        // Natijalarni id bo'yicha saralash va eng so'nggi natijani olish
         Result latestResult = allResults.stream()
                 .max(Comparator.comparing(Result::getId))
-                .orElse(null); // Agar natijalar bo'lmasa, null qaytaradi
+                .orElse(null);
 
         if (latestResult != null) {
             ResponseResults responseResult = ResponseResults.builder()
@@ -59,10 +56,6 @@ public class ResultService {
             return new ApiResponse("No test results found for the user", HttpStatus.NOT_FOUND, null);
         }
     }
-
-
-
-
 
 
 }

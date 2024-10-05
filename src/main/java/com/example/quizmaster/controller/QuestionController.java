@@ -37,7 +37,7 @@ public class QuestionController {
     public ResponseEntity<ApiResponse> getAllQuestions(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        ApiResponse response = questionService.getAll(page, size);
+        ApiResponse response = questionService.getAllQuestion(page, size);
         return new ResponseEntity<>(response, response.getCode());
     }
 

@@ -28,7 +28,6 @@ public class QuestionService {
     private final QuizRepository quizRepository;
     private final AnswerRepository answerRepository;
 
-    // savollarni saqlash
     public ApiResponse saveQuestion(RequestQuestion requestQuestion) {
         Question question = Question.builder()
                 .question_text(requestQuestion.getText())
@@ -65,9 +64,7 @@ public class QuestionService {
         return new ApiResponse("Question saved successfully!", HttpStatus.CREATED);
     }
 
-
-    // barcha savolni olish
-    public ApiResponse getAll(int page, int size) {
+    public ApiResponse getAllQuestion(int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
         Page<Question> questionPage = questionRepository.findAll(pageRequest);
         List<ResponseQuestion> responseQuestions = toResponseQuestion(questionPage.getContent());
@@ -84,7 +81,6 @@ public class QuestionService {
 
     }
 
-    // savolni yangilash
     public ApiResponse updateQuestion(Long id, RequestQuestion requestQuestion) {
         Question question = questionRepository.findById(id).orElse(null);
         if (question == null) {
@@ -128,7 +124,6 @@ public class QuestionService {
         return new ApiResponse("Question updated successfully!", HttpStatus.OK);
     }
 
-    // savolni o'chirish
     public ApiResponse deleteQuestion(Long id) {
         Question question = questionRepository.findById(id).orElse(null);
         if (question == null) {
@@ -142,8 +137,6 @@ public class QuestionService {
         return new ApiResponse("Question deleted successfully!", HttpStatus.OK);
     }
 
-
-    // savolni idi bo'yicha olish
     public ApiResponse getOne(Long id) {
         Question question = questionRepository.findById(id).orElse(null);
         if (question == null) {
@@ -155,16 +148,12 @@ public class QuestionService {
         return new ApiResponse("Question retrieved successfully!", HttpStatus.OK, responseQuestion);
     }
 
-    // question obektini response qilish
     public List<ResponseQuestion> toResponseQuestion(List<Question> questions) {
         List<ResponseQuestion> responseQuestions = new ArrayList<>();
 
-        // har bir question obyektlarni korish uchun
         for (Question question : questions) {
             List<ResponseAnswer> responseAnswers = new ArrayList<>();
-            // question boyicha answer ni olish
             for (Answer answer : question.getAnswers()) {
-                // answer obyektini response qilish
                 ResponseAnswer responseAnswer = ResponseAnswer.builder()
                         .id(answer.getId())
                         .text(answer.getAnswerText())
@@ -174,14 +163,12 @@ public class QuestionService {
 
                 responseAnswers.add(responseAnswer);
             }
-            // question obyektni response qilish
             ResponseQuestion responseQuestion = ResponseQuestion.builder()
                     .id(question.getId())
                     .text(question.getQuestion_text())
                     .answers(responseAnswers)
                     .quizId(question.getQuiz().getId())
                     .build();
-            // responseQuestion obyektini ruyxatga qoshish
             responseQuestions.add(responseQuestion);
         }
 

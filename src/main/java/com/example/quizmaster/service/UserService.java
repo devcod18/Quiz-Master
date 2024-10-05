@@ -30,7 +30,6 @@ public class UserService {
     private final EmailSenderService emailSenderService;
 
 
-    // admin saqlash
     public ApiResponse saveAdmin(RegisterRequest request) {
         if (userRepository.existsByEmail(request.email())) {
             return new ApiResponse("Email already in use!", HttpStatus.BAD_REQUEST);
@@ -48,7 +47,6 @@ public class UserService {
         return new ApiResponse("Admin created successfully!", HttpStatus.CREATED);
     }
 
-    // barcha adminlar
     public ApiResponse getAllAdmins(int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
         Page<User> admins = userRepository.findAllByRole(RoleEnum.ROLE_ADMIN, pageRequest);
@@ -65,17 +63,15 @@ public class UserService {
         return new ApiResponse("Retrieved all Admins!", HttpStatus.OK, pageable);
     }
 
-    // user qidiruv
     public ApiResponse searchUserByFirstName(String name) {
         List<User> allUsersSearch = userRepository.findUsersByFirstName(name);
         List<ResponseUser> responseUsers = toResponseUser(allUsersSearch);
         return new ApiResponse(responseUsers);
     }
 
-    // barchha userni olish
     public ApiResponse getAllUsers(int size, int page) {
         if (size < 1) {
-            size = 1;  // minimal qiymat
+            size = 1;
         }
 
         PageRequest pageRequest = PageRequest.of(page, size);
@@ -93,7 +89,6 @@ public class UserService {
         return new ApiResponse("Retrieved all Users!", HttpStatus.OK, pageable);
     }
 
-    // profilni ko'rish
     public ApiResponse getMe(User user) {
         ResponseUser responseUser = ResponseUser.builder()
                 .email(user.getEmail())
@@ -104,7 +99,6 @@ public class UserService {
         return new ApiResponse("Success", HttpStatus.OK, responseUser);
     }
 
-    // userni yangilash
     public ApiResponse updateUser(Long userId, RegisterRequest request) {
 
         Optional<User> optionalUser = userRepository.findById(userId);
@@ -126,7 +120,6 @@ public class UserService {
         return new ApiResponse("User successfully updated!", HttpStatus.OK);
     }
 
-    // id boyicha user olish
     public ApiResponse getOne(Long id) {
         User user = userRepository.findById(id).orElse(null);
         if (user == null) {
@@ -145,49 +138,44 @@ public class UserService {
     }
 
     public ApiResponse sendConfirmationCode(String email) {
-        // Email formatini tekshirish
         if (!isValidEmail(email)) {
-            return new ApiResponse("Iltimos, to'g'ri email manzilini kiriting", HttpStatus.BAD_REQUEST);
+            return new ApiResponse("Please enter a valid email address", HttpStatus.BAD_REQUEST);
         }
 
-        // Foydalanuvchini topish
         Optional<User> userOptional = userRepository.findByEmail(email);
         if (userOptional.isEmpty()) {
-            return new ApiResponse("Email topilmadi", HttpStatus.NOT_FOUND);
+            return new ApiResponse("Email not found", HttpStatus.NOT_FOUND);
         }
 
         User user = userOptional.get();
         Integer code = authService.generateFiveDigitNumber();
         user.setActivationCode(code);
 
-        // Aktivatsiya kodini saqlash
         userRepository.save(user);
-        emailSenderService.sendEmail(user.getEmail(), "Parolni tiklash kodi", String.valueOf(code));
+        emailSenderService.sendEmail(user.getEmail(), "Password recovery code", String.valueOf(code));
 
-        return new ApiResponse("Tasdiqlash kodi emailga yuborildi. Iltimos, tekshiring!", HttpStatus.OK);
+        return new ApiResponse("A verification code has been sent to your email. Please check it out!", HttpStatus.OK);
     }
 
     public ApiResponse updatePassword(User user, String newPassword, String confirmPassword) {
-        // Yangi parolning xavfsizlik tekshiruvi
         if (!isValidPassword(newPassword, confirmPassword)) {
-            return new ApiResponse("Parol murakkablik talablari bo'yicha mos kelmaydi", HttpStatus.BAD_REQUEST);
+            return new ApiResponse("The password does not meet the complexity requirements", HttpStatus.BAD_REQUEST);
         }
 
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
-        return new ApiResponse("Parol muvaffaqiyatli yangilandi", HttpStatus.OK);
+        return new ApiResponse("Password successfully updated", HttpStatus.OK);
     }
 
     public ApiResponse resetPasswordWithCode(Integer code, String newPassword, String confirmPassword) {
         User user = userRepository.findByActivationCode(code);
         if (user == null) {
-            return new ApiResponse("Noto'g'ri tasdiqlash kodi", HttpStatus.NOT_FOUND);
+            return new ApiResponse("Invalid verification code", HttpStatus.NOT_FOUND);
         }
 
         user.setActivationCode(null);
         return updatePassword(user, newPassword, confirmPassword);
     }
-
 
     private boolean isValidEmail(String email) {
         try {
@@ -199,12 +187,11 @@ public class UserService {
         }
     }
 
-
     private boolean isValidPassword(String password, String confirmPassword) {
-        if (!confirmPassword.equals(password)) {
+        if (password == null || confirmPassword == null || !confirmPassword.equals(password)) {
             return false;
         }
-        return password != null && password.length() >= 8
+        return password.length() >= 8
                 && password.matches(".*[A-Z].*")
                 && password.matches(".*[a-z].*")
                 && password.matches(".*\\d.*")

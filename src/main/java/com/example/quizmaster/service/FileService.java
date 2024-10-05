@@ -25,16 +25,9 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class FileService {
-
     @Value("${file.upload-dir1}")
     private String uploadDir;
-
-
-
     private final FileRepository fileRepository;
-
-
-
     private static final Path root = Paths.get("");
 
     public ApiResponse saveFile(MultipartFile file) throws ChangeSetPersister.NotFoundException {
@@ -82,7 +75,6 @@ public class FileService {
         return "file";
     }
 
-
     //    GetFile uchun
     public Resource loadFileAsResource(Long id) throws MalformedURLException {
         Optional<File> videoFileOptional = fileRepository.findById(id);
@@ -95,7 +87,6 @@ public class FileService {
         }
         return null;
     }
-
 
     //    update
     public File updateFile(Long id, MultipartFile file) throws IOException {
@@ -128,7 +119,6 @@ public class FileService {
         }
     }
 
-
     //delete file
     public ApiResponse deleteFile(Long id) throws IOException {
         Optional<File> existingVideoFile = fileRepository.findById(id);
@@ -137,7 +127,7 @@ public class FileService {
             Path filePath = Paths.get(videoFile.getFilepath());
             Files.deleteIfExists(filePath);
             fileRepository.delete(videoFile);
-            return new ApiResponse("Successfully deleted",HttpStatus.OK);
+            return new ApiResponse("Successfully deleted", HttpStatus.OK);
         } else {
             throw new IOException("File not found");
         }
