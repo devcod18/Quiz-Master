@@ -22,7 +22,7 @@ public class DataLoader implements CommandLineRunner {
         if(ddl.equals("create") || ddl.equals("create-drop")) {
             User user = User.builder()
                     .role(RoleEnum.ROLE_SUPER_ADMIN)
-                    .email("admin@gmail.com")
+                    .email("sAdmin@gmail.com")
                     .password(passwordEncoder.encode("root123"))
                     .firstName("M")
                     .lastName("M")

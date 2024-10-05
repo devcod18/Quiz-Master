@@ -26,11 +26,23 @@ public class AuthService {
 
     // userni register qilish
     public ApiResponse registerUser(RegisterRequest request) {
+        // email formatini tekshirish
+        if (!isValidEmail(request.email())) {
+            return new ApiResponse("Invalid email format. Only Gmail addresses are allowed!", HttpStatus.BAD_REQUEST, null);
+        }
+
+        // foydalanuvchi mavjudligini tekshirish
         boolean userExists = userRepository.existsByEmail(request.email());
         if (userExists) {
-            return new ApiResponse("User with this email already exists", HttpStatus.BAD_REQUEST, null);
+            return new ApiResponse("User with this email already exists!", HttpStatus.BAD_REQUEST, null);
         }
+
+        // tasdiqlash kodini generatsiya qilish
         Integer code = generateFiveDigitNumber();
+
+        String name = extractNameFromEmail(request.email());
+
+        // yangi foydalanuvchini yaratish va saqlash
         User user = User.builder()
                 .email(request.email())
                 .firstName(request.firstName())
@@ -40,21 +52,45 @@ public class AuthService {
                 .role(RoleEnum.ROLE_USER)
                 .build();
         userRepository.save(user);
-        emailSenderService.sendEmail(request.email(), "CONFIRM YOUR EMAIL", "Your activation code: " + code);
-        return new ApiResponse("User successfully registered", HttpStatus.CREATED, null);
+
+        // email mazmuni (o'zgaruvchan format)
+        String emailContent = String.format(
+                "Welcome, %s!\n\n" +
+                        "We at Quiz Master are excited to welcome you to our platform!\n\n" +
+                        "To confirm your registration, please enter the following code: %d\n\n" +
+                        "Do not share this code. If you did’t request this, contact support!\n\n" +
+                        "Best regards! The Quiz Master Team!"
+                , name, code);
+
+        // email yuborish
+        emailSenderService.sendEmail(request.email(), "CONFIRM YOUR EMAIL!", emailContent);
+
+        return new ApiResponse("User successfully registered!", HttpStatus.CREATED, null);
+    }
+
+    private String extractNameFromEmail(String email) {
+        String localPart = email.split("@")[0];
+        return localPart.substring(0, 1).toUpperCase() + localPart.substring(1);
+    }
+
+    // Utility method to validate email format
+    private boolean isValidEmail(String email) {
+        String emailRegex = "^[a-zA-Z0-9._%+-]+@gmail\\.com$";
+        return email != null && email.matches(emailRegex);
     }
 
     // aktivatsiya kodini tekshirish
     public ApiResponse checkCode(Integer code) {
-        Optional<User> userOptional = userRepository.findByActivationCode(code);
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            if (user.getActivationCode().equals(code)) {
-                user.setEnabled(true);
-                user.setActivationCode(null);
-                userRepository.save(user);
-                return new ApiResponse("Your account has been successfully activated", HttpStatus.OK, null);
-            }
+        User userOptional = userRepository.findByActivationCode(code);
+        if (userOptional == null) {
+            return new ApiResponse("User not found", HttpStatus.NOT_FOUND);
+        }
+
+        if (userOptional.getActivationCode().equals(code)) {
+            userOptional.setActivationCode(null);
+            userOptional.setEnabled(true);
+            userRepository.save(userOptional);
+            return new ApiResponse("Successfully activated", HttpStatus.OK);
         }
         return new ApiResponse("Invalid activation code", HttpStatus.NOT_FOUND, null);
     }

@@ -23,7 +23,7 @@ public class ResultService {
                 .stream()
                 .map(result -> ResponseResults.builder()
                         .id(result.getId())
-                        .timeTaken(result.formatTimeTaken())
+                        .timeTaken(result.getTimeTaken().toString())
                         .correctAnswers(result.getCorrectAnswers())
                         .quiz(result.getQuiz().getId())
                         .totalQuestion(result.getTotalQuestion())
@@ -31,6 +31,6 @@ public class ResultService {
                         .build())
                 .collect(Collectors.toList());
 
-        return new ApiResponse("Successfully retrieved user results", HttpStatus.OK, resultList);
+        return new ApiResponse("Successfully retrieved user results!", HttpStatus.OK, resultList);
     }
 }

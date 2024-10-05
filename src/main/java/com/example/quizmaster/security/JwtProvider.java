@@ -20,7 +20,7 @@ public class JwtProvider implements AuthenticationProvider {
     private Long ttl ;
 
 
-    public String generateToken(String  phoneNumber){
+    public String generateToken(String phoneNumber){
         return Jwts.builder()
                 .setSubject(phoneNumber)
                 .setIssuedAt(new Date())

@@ -3,9 +3,7 @@ package com.example.quizmaster.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
-
 @Entity
 @Getter
 @Setter
@@ -38,13 +36,6 @@ public class Result {
 
     @ManyToOne
     private Quiz quiz;
-
-    public String formatTimeTaken() {
-        Duration duration = Duration.ofMillis(timeTaken);
-        long minutes = duration.toMinutes();
-        long seconds = duration.getSeconds() % 60;
-        return String.format("%d min, %d sec", minutes, seconds);
-    }
 
 
 }

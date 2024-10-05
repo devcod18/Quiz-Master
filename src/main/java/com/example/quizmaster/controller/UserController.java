@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+
     @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     @Operation(summary = "Create new admin",
             description = "Allows super admin to create a new admin user")
@@ -51,9 +52,9 @@ public class UserController {
         return ResponseEntity.ok(apiResponse);
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN','ROLE_ADMIN','ROLE_USER')")
     @Operation(summary = "Get my profile",
             description = "Shows the profile of the currently logged-in user")
-    @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN','ROLE_ADMIN','ROLE_USER')")
     @GetMapping("/get/me")
     public ResponseEntity<ApiResponse> getMe(@CurrentUser User user) {
         ApiResponse me = userService.getMe(user);
@@ -85,7 +86,7 @@ public class UserController {
     @Operation(summary = "Get one user by ID",
             description = "Fetches details of a single user by its user ID for users with SUPER_ADMIN or ADMIN roles.")
     @PutMapping("/getOne/{userId}")
-    public ResponseEntity<ApiResponse> getOne(@PathVariable Long userId){
+    public ResponseEntity<ApiResponse> getOne(@PathVariable Long userId) {
         ApiResponse one = userService.getOne(userId);
         return ResponseEntity.ok(one);
     }

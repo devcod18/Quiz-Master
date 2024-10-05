@@ -29,7 +29,7 @@ public class UserService {
     // admin saqlash
     public ApiResponse saveAdmin(RegisterRequest request) {
         if (userRepository.existsByEmail(request.email())) {
-            return new ApiResponse("Email already in use", HttpStatus.BAD_REQUEST);
+            return new ApiResponse("Email already in use!", HttpStatus.BAD_REQUEST);
         }
 
         User user = User.builder()
@@ -41,7 +41,7 @@ public class UserService {
                 .build();
 
         userRepository.save(user);
-        return new ApiResponse("Admin created successfully", HttpStatus.CREATED);
+        return new ApiResponse("Admin created successfully!", HttpStatus.CREATED);
     }
 
     // barcha adminlar
@@ -58,7 +58,7 @@ public class UserService {
                 .data(user)
                 .build();
 
-        return new ApiResponse("Retrieved all Admins", HttpStatus.OK, pageable);
+        return new ApiResponse("Retrieved all Admins!", HttpStatus.OK, pageable);
     }
 
     // user qidiruv
@@ -86,10 +86,10 @@ public class UserService {
                 .data(user)
                 .build();
 
-        return new ApiResponse("Retrieved all Users", HttpStatus.OK, pageable);
+        return new ApiResponse("Retrieved all Users!", HttpStatus.OK, pageable);
     }
 
-    // profilni korish
+    // profilni ko'rish
     public ApiResponse getMe(User user) {
         ResponseUser responseUser = ResponseUser.builder()
                 .email(user.getEmail())
@@ -105,7 +105,7 @@ public class UserService {
 
         Optional<User> optionalUser = userRepository.findById(userId);
         if (optionalUser.isEmpty()) {
-            return new ApiResponse("Foydalanuvchi topilmadi", HttpStatus.NOT_FOUND);
+            return new ApiResponse("Incorrect users!", HttpStatus.NOT_FOUND);
         }
 
         User user = optionalUser.get();
@@ -119,7 +119,7 @@ public class UserService {
 
         userRepository.save(user);
 
-        return new ApiResponse("User successfully updated", HttpStatus.OK);
+        return new ApiResponse("User successfully updated!", HttpStatus.OK);
     }
 
     // id boyicha user olish
@@ -137,10 +137,10 @@ public class UserService {
                 .build();
 
 
-        return new ApiResponse("User found", HttpStatus.OK, responseUser);
+        return new ApiResponse("User found!", HttpStatus.OK, responseUser);
     }
 
-    // userni listga saqlash
+    // userni list saqlash
     public List<ResponseUser> toResponseUser(List<User> users) {
         List<ResponseUser> users1 = new ArrayList<>();
         for (User admin : users) {
