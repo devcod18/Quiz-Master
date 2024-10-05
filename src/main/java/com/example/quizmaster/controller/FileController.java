@@ -1,6 +1,7 @@
 package com.example.quizmaster.controller;
 
 import com.example.quizmaster.entity.File;
+import jakarta.validation.Valid;
 import org.springframework.core.io.Resource;
 import com.example.quizmaster.payload.ApiResponse;
 import com.example.quizmaster.service.FileService;
@@ -28,8 +29,7 @@ public class FileController {
 
     @Operation(summary = "Upload a file", description = "Uploads a file (such as a video) to the server")
     @PostMapping(value = "/upload", consumes = {"multipart/form-data"})
-    public ResponseEntity<ApiResponse> uploadVideo(
-            @RequestParam("file") MultipartFile file) {
+    public ResponseEntity<ApiResponse> uploadVideo(@Valid @RequestParam("file") MultipartFile file) {
         try {
             ApiResponse videoFile = fileService.saveFile(file);
             return ResponseEntity.status(videoFile.getCode()).body(videoFile);
@@ -40,8 +40,7 @@ public class FileController {
 
     @Operation(summary = "Get file by ID", description = "Retrieves a file by its ID from the server")
     @GetMapping("/files/{id}")
-    public ResponseEntity<Resource> getFile(
-            @PathVariable Long id) {
+    public ResponseEntity<Resource> getFile(@Valid @PathVariable Long id) {
         try {
             Resource resource = fileService.loadFileAsResource(id);
             return ResponseEntity.ok()
@@ -55,8 +54,7 @@ public class FileController {
 
     @Operation(summary = "Update a file", description = "Updates an existing file by its ID")
     @PutMapping(value = "/update/{id}", consumes = {"multipart/form-data"})
-    public ResponseEntity<File> updateFile(
-            @PathVariable Long id,
+    public ResponseEntity<File> updateFile(@Valid @PathVariable Long id,
             @RequestParam("file") MultipartFile file) {
         try {
             File updatedFile = fileService.updateFile(id, file);
@@ -68,8 +66,7 @@ public class FileController {
 
     @Operation(summary = "Delete a file", description = "Deletes a file from the server by its ID")
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<ApiResponse> deleteFile(
-            @PathVariable Long id) {
+    public ResponseEntity<ApiResponse> deleteFile(@Valid @PathVariable Long id) {
         try {
             ApiResponse apiResponse = fileService.deleteFile(id);
             return ResponseEntity.status(apiResponse.getCode()).body(apiResponse);

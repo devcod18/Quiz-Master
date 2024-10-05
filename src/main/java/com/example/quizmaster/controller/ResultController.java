@@ -6,6 +6,7 @@ import com.example.quizmaster.security.CurrentUser;
 import com.example.quizmaster.service.ResultService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag; // Import the Tag annotation
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,7 +24,7 @@ public class ResultController {
     @PreAuthorize("hasRole('ROLE_USER')")
     @Operation(summary = "Retrieve user results", description = "Fetches the results of the authenticated user.")
     @GetMapping("/userResults")
-    public ResponseEntity<ApiResponse> getUserResults(@CurrentUser User user) {
+    public ResponseEntity<ApiResponse> getUserResults(@Valid @CurrentUser User user) {
         ApiResponse userResults = resultService.getUserResults(user);
         return ResponseEntity.ok(userResults);
     }

@@ -6,6 +6,7 @@ import com.example.quizmaster.payload.RegisterRequest;
 import com.example.quizmaster.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +23,7 @@ public class AuthController {
     @PostMapping("/register")
     @Operation(summary = "Register a new user",
             description = "Allows anyone to register a new user with necessary details.")
-    public ResponseEntity<ApiResponse> registerUser(@RequestBody RegisterRequest request) {
+    public ResponseEntity<ApiResponse> registerUser(@Valid @RequestBody RegisterRequest request) {
         ApiResponse apiResponse = authService.registerUser(request);
         return new ResponseEntity<>(apiResponse, apiResponse.getCode());
     }
@@ -30,7 +31,7 @@ public class AuthController {
     @PostMapping("/login")
     @Operation(summary = "User login",
             description = "Allows a user to log in by providing their email and password.")
-    public ResponseEntity<ApiResponse> loginUser(@RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponse> loginUser(@Valid @RequestBody LoginRequest request) {
         ApiResponse apiResponse = authService.login(request);
         return new ResponseEntity<>(apiResponse, apiResponse.getCode());
     }

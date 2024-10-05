@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface ResultRepository extends JpaRepository<Result, Long> {
     List<Result> findAllByUserId(Long userId);
+
+    List<Result> findAllByUserIdAndQuizId(Long userId, Long quizId);
 }

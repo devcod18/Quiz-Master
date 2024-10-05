@@ -55,7 +55,7 @@ public class AuthService {
 
         // email mazmuni (o'zgaruvchan format)
         String emailContent = String.format(
-                "Welcome, %s!\n\n" +
+                "Hi %s!\n\n" +
                         "We at Quiz Master are excited to welcome you to our platform!\n\n" +
                         "To confirm your registration, please enter the following code: %d\n\n" +
                         "Do not share this code. If you did’t request this, contact support!\n\n" +
@@ -66,33 +66,6 @@ public class AuthService {
         emailSenderService.sendEmail(request.email(), "CONFIRM YOUR EMAIL!", emailContent);
 
         return new ApiResponse("User successfully registered!", HttpStatus.CREATED, null);
-    }
-
-    private String extractNameFromEmail(String email) {
-        String localPart = email.split("@")[0];
-        return localPart.substring(0, 1).toUpperCase() + localPart.substring(1);
-    }
-
-    // Utility method to validate email format
-    private boolean isValidEmail(String email) {
-        String emailRegex = "^[a-zA-Z0-9._%+-]+@gmail\\.com$";
-        return email != null && email.matches(emailRegex);
-    }
-
-    // aktivatsiya kodini tekshirish
-    public ApiResponse checkCode(Integer code) {
-        User userOptional = userRepository.findByActivationCode(code);
-        if (userOptional == null) {
-            return new ApiResponse("User not found", HttpStatus.NOT_FOUND);
-        }
-
-        if (userOptional.getActivationCode().equals(code)) {
-            userOptional.setActivationCode(null);
-            userOptional.setEnabled(true);
-            userRepository.save(userOptional);
-            return new ApiResponse("Successfully activated", HttpStatus.OK);
-        }
-        return new ApiResponse("Invalid activation code", HttpStatus.NOT_FOUND, null);
     }
 
     // umimiy login
@@ -112,6 +85,32 @@ public class AuthService {
         }
 
         return new ApiResponse("Email not found", HttpStatus.NOT_FOUND, null);
+    }
+
+    // aktivatsiya kodini tekshirish
+    public ApiResponse checkCode(Integer code) {
+        User userOptional = userRepository.findByActivationCode(code);
+        if (userOptional == null) {
+            return new ApiResponse("User not found", HttpStatus.NOT_FOUND);
+        }
+
+        if (userOptional.getActivationCode().equals(code)) {
+            userOptional.setActivationCode(null);
+            userOptional.setEnabled(true);
+            userRepository.save(userOptional);
+            return new ApiResponse("Successfully activated", HttpStatus.OK);
+        }
+        return new ApiResponse("Invalid activation code", HttpStatus.NOT_FOUND, null);
+    }
+
+    private String extractNameFromEmail(String email) {
+        String localPart = email.split("@")[0];
+        return localPart.substring(0, 1).toUpperCase() + localPart.substring(1);
+    }
+
+    private boolean isValidEmail(String email) {
+        String emailRegex = "^[a-zA-Z0-9._%+-]+@gmail\\.com$";
+        return email != null && email.matches(emailRegex);
     }
 
     // activatsiya kodini yaratish
