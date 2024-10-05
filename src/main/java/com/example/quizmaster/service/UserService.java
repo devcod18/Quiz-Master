@@ -26,6 +26,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    private final AuthService authService;
+
     // admin saqlash
     public ApiResponse saveAdmin(RegisterRequest request) {
         if (userRepository.existsByEmail(request.email())) {
@@ -139,6 +141,7 @@ public class UserService {
 
         return new ApiResponse("User found!", HttpStatus.OK, responseUser);
     }
+
 
     // userni list saqlash
     public List<ResponseUser> toResponseUser(List<User> users) {

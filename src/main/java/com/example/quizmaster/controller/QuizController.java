@@ -8,6 +8,7 @@ import com.example.quizmaster.security.CurrentUser;
 import com.example.quizmaster.service.QuizService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,7 +29,7 @@ public class QuizController {
     @Operation(summary = "Save a quiz",
             description = "Saves a new quiz based on the provided request data.")
     @PostMapping("/saveQuiz")
-    public ResponseEntity<ApiResponse> save(@RequestBody RequestQuiz requestQuiz) {
+    public ResponseEntity<ApiResponse> save(@Valid @RequestBody RequestQuiz requestQuiz) {
         ApiResponse save = service.save(requestQuiz);
         return new ResponseEntity<>(save, save.getCode());
     }
@@ -38,7 +39,7 @@ public class QuizController {
             description = "Retrieves a list of all quizzes with pagination options.")
     @GetMapping("/getAllQuiz")
     public ResponseEntity<ApiResponse> getAll(
-            @RequestParam(defaultValue = "0") int page,
+            @Valid @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) {
         ApiResponse response = service.getAll(page, size);
         return new ResponseEntity<>(response, response.getCode());
@@ -48,7 +49,7 @@ public class QuizController {
     @Operation(summary = "Update a quiz",
             description = "Updates an existing quiz identified by the given ID with the provided request data.")
     @PutMapping("/updateQuiz/{quizId}")
-    public ResponseEntity<ApiResponse> update(@PathVariable Long quizId, @RequestBody RequestQuiz requestQuiz) {
+    public ResponseEntity<ApiResponse> update(@Valid @PathVariable Long quizId, @RequestBody RequestQuiz requestQuiz) {
         ApiResponse response = service.update(quizId, requestQuiz);
         return new ResponseEntity<>(response, response.getCode());
     }
@@ -57,7 +58,7 @@ public class QuizController {
     @Operation(summary = "Delete a quiz",
             description = "Deletes a quiz identified by the given ID.")
     @DeleteMapping("/deleteQuiz/{quizId}")
-    public ResponseEntity<ApiResponse> delete(@PathVariable Long quizId) {
+    public ResponseEntity<ApiResponse> delete(@Valid @PathVariable Long quizId) {
         ApiResponse response = service.delete(quizId);
         return new ResponseEntity<>(response, response.getCode());
     }
@@ -66,7 +67,7 @@ public class QuizController {
     @Operation(summary = "Start a test",
             description = "Allows users to start a test for a specific quiz identified by quiz ID.")
     @GetMapping("/startTest/{quizId}")
-    public ResponseEntity<ApiResponse> startTest(@PathVariable Long quizId) {
+    public ResponseEntity<ApiResponse> startTest(@Valid @PathVariable Long quizId) {
         ApiResponse apiResponse = service.getRandomQuestionsForQuiz(quizId);
         return ResponseEntity.ok(apiResponse);
     }
@@ -75,7 +76,7 @@ public class QuizController {
     @Operation(summary = "Submit answers for a test",
             description = "Allows users to submit their answers for a quiz identified by quiz ID.")
     @PostMapping("/passTest/{quizId}")
-    public ResponseEntity<ApiResponse> passTest(@RequestBody List<ReqPassTest> reqPassTestList,
+    public ResponseEntity<ApiResponse> passTest(@Valid @RequestBody List<ReqPassTest> reqPassTestList,
                                                 @CurrentUser User user,
                                                 @PathVariable Long quizId,
                                                 @RequestParam Long timeTaken) {
@@ -87,7 +88,7 @@ public class QuizController {
     @Operation(summary = "Get one quiz by ID",
             description = "Fetches details of a single quiz by its quiz ID for users with SUPER_ADMIN or ADMIN roles.")
     @PutMapping("/getOneQuiz/{quizId}")
-    public ResponseEntity<ApiResponse> getOne(@PathVariable Long quizId) {
+    public ResponseEntity<ApiResponse> getOne(@Valid @PathVariable Long quizId) {
         ApiResponse one = service.getOne(quizId);
         return ResponseEntity.ok(one);
     }

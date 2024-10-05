@@ -7,6 +7,7 @@ import com.example.quizmaster.security.CurrentUser;
 import com.example.quizmaster.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,7 +27,7 @@ public class UserController {
             description = "Allows super admin to create a new admin user")
     @PostMapping("/save-admin")
     public ResponseEntity<ApiResponse> saveAdmin(
-            @RequestBody RegisterRequest request) {
+            @Valid @RequestBody RegisterRequest request) {
         ApiResponse apiResponse = userService.saveAdmin(request);
         return ResponseEntity.status(apiResponse.getCode()).body(apiResponse);
     }
@@ -36,7 +37,7 @@ public class UserController {
             description = "Fetches a paginated list of admin users")
     @GetMapping("/admins")
     public ResponseEntity<ApiResponse> getAllAdmins(
-            @RequestParam(name = "page", defaultValue = "0") int page,
+            @Valid @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "5") int size) {
         ApiResponse allAdmins = userService.getAllAdmins(page, size);
         return ResponseEntity.ok(allAdmins);
@@ -46,7 +47,7 @@ public class UserController {
             description = "Searches users by their first name")
     @GetMapping("/search")
     public ResponseEntity<ApiResponse> search(
-            @RequestParam String name,
+            @Valid @RequestParam String name,
             @CurrentUser User user) {
         ApiResponse apiResponse = userService.searchUserByFirstName(name);
         return ResponseEntity.ok(apiResponse);
@@ -56,7 +57,7 @@ public class UserController {
     @Operation(summary = "Get my profile",
             description = "Shows the profile of the currently logged-in user")
     @GetMapping("/get/me")
-    public ResponseEntity<ApiResponse> getMe(@CurrentUser User user) {
+    public ResponseEntity<ApiResponse> getMe(@Valid @CurrentUser User user) {
         ApiResponse me = userService.getMe(user);
         return ResponseEntity.ok(me);
     }
@@ -66,7 +67,7 @@ public class UserController {
             description = "Fetches a paginated list of all users")
     @GetMapping("/all/user")
     public ResponseEntity<ApiResponse> getAllUsers(
-            @RequestParam(name = "page", defaultValue = "0") int page,
+            @Valid @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "5") int size) {
         ApiResponse allUsers = userService.getAllUsers(page, size);
         return ResponseEntity.ok(allUsers);
@@ -76,7 +77,7 @@ public class UserController {
     @Operation(summary = "Update user profile",
             description = "Allows users to update their profile")
     @PutMapping("/update/{userId}")
-    public ResponseEntity<ApiResponse> updateProfile(@PathVariable Long userId,
+    public ResponseEntity<ApiResponse> updateProfile(@Valid @PathVariable Long userId,
                                                      @RequestBody RegisterRequest request) {
         ApiResponse apiResponse = userService.updateUser(userId, request);
         return ResponseEntity.ok(apiResponse);
@@ -86,7 +87,7 @@ public class UserController {
     @Operation(summary = "Get one user by ID",
             description = "Fetches details of a single user by its user ID for users with SUPER_ADMIN or ADMIN roles.")
     @PutMapping("/getOne/{userId}")
-    public ResponseEntity<ApiResponse> getOne(@PathVariable Long userId) {
+    public ResponseEntity<ApiResponse> getOne(@Valid @PathVariable Long userId) {
         ApiResponse one = userService.getOne(userId);
         return ResponseEntity.ok(one);
     }
