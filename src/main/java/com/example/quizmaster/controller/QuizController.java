@@ -9,6 +9,7 @@ import com.example.quizmaster.service.QuizService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -29,7 +30,7 @@ public class QuizController {
             description = "Saves a new quiz based on the provided request data.")
     @PostMapping("/saveQuiz")
     public ResponseEntity<ApiResponse> save(@RequestBody RequestQuiz requestQuiz) {
-        ApiResponse save = service.saveQuiz(requestQuiz);
+        ApiResponse save = service.save(requestQuiz);
         return new ResponseEntity<>(save, save.getCode());
     }
 
@@ -40,7 +41,7 @@ public class QuizController {
     public ResponseEntity<ApiResponse> getAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) {
-        ApiResponse response = service.getAllQuiz(page, size);
+        ApiResponse response = service.getAll(page, size);
         return new ResponseEntity<>(response, response.getCode());
     }
 
@@ -49,7 +50,7 @@ public class QuizController {
             description = "Updates an existing quiz identified by the given ID with the provided request data.")
     @PutMapping("/updateQuiz/{quizId}")
     public ResponseEntity<ApiResponse> update(@PathVariable Long quizId, @RequestBody RequestQuiz requestQuiz) {
-        ApiResponse response = service.updateQuiz(quizId, requestQuiz);
+        ApiResponse response = service.update(quizId, requestQuiz);
         return new ResponseEntity<>(response, response.getCode());
     }
 
@@ -58,7 +59,7 @@ public class QuizController {
             description = "Deletes a quiz identified by the given ID.")
     @DeleteMapping("/deleteQuiz/{quizId}")
     public ResponseEntity<ApiResponse> delete(@PathVariable Long quizId) {
-        ApiResponse response = service.deleteQuiz(quizId);
+        ApiResponse response = service.delete(quizId);
         return new ResponseEntity<>(response, response.getCode());
     }
 
@@ -90,6 +91,17 @@ public class QuizController {
     public ResponseEntity<ApiResponse> getOne(@PathVariable Long quizId) {
         ApiResponse one = service.getOne(quizId);
         return ResponseEntity.ok(one);
+    }
+
+    @PreAuthorize("hasRole('ROLE_USER')")
+    @GetMapping("/start-test")
+    public ResponseEntity<ApiResponse> startTest(@RequestParam List<Long> quizIds) {
+        if (quizIds == null || quizIds.isEmpty()) {
+            return ResponseEntity.badRequest().body(new ApiResponse("Quiz IDs cannot be empty!", HttpStatus.BAD_REQUEST));
+        }
+
+        ApiResponse apiResponse = service.getRandomQuestionsForMultipleQuizzes(quizIds);
+        return ResponseEntity.status(apiResponse.getCode()).body(apiResponse);
     }
 
 }

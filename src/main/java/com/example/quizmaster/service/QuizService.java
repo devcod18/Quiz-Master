@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,7 +34,8 @@ public class QuizService {
     private final ResultRepository resultRepository;
     private final AnswerRepository answerRepository;
 
-    public ApiResponse saveQuiz(RequestQuiz requestQuiz) {
+    // categoriya saqlash
+    public ApiResponse save(RequestQuiz requestQuiz) {
 
         Quiz quiz = Quiz.builder()
                 .title(requestQuiz.getTitle())
@@ -47,7 +49,8 @@ public class QuizService {
         return new ApiResponse("Quiz saved successfully!", HttpStatus.CREATED);
     }
 
-    public ApiResponse getAllQuiz(int page, int size) {
+    // categoriyalarni olish
+    public ApiResponse getAll(int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
         Page<Quiz> quizPage = quizRepository.findAll(pageRequest);
 
@@ -66,7 +69,8 @@ public class QuizService {
         return new ApiResponse("Quizzes retrieved successfully!", HttpStatus.OK, pageable);
     }
 
-    public ApiResponse updateQuiz(Long id, RequestQuiz requestQuiz) {
+    // categoriyani yangilash
+    public ApiResponse update(Long id, RequestQuiz requestQuiz) {
         Quiz quiz = quizRepository.findById(id).orElse(null);
         if (quiz == null) {
             return new ApiResponse("Quiz not found!", HttpStatus.NOT_FOUND);
@@ -81,16 +85,18 @@ public class QuizService {
         return new ApiResponse("Quiz updated successfully!", HttpStatus.OK);
     }
 
-    public ApiResponse deleteQuiz(Long id) {
+    // o'chirish
+    public ApiResponse delete(Long id) {
         Quiz quiz = quizRepository.findById(id).orElse(null);
-        if (quiz == null) {
-            return new ApiResponse("Quiz not found!", HttpStatus.NOT_FOUND);
+        if (quiz  == null){
+            return new ApiResponse("Quiz not found!",HttpStatus.NOT_FOUND);
         }
 
         quizRepository.delete(quiz);
         return new ApiResponse("Quiz deleted successfully!", HttpStatus.OK);
     }
 
+    // categoriya boyicha random savollar chiqarish
     public ApiResponse getRandomQuestionsForQuiz(Long quiz) {
         Quiz quiz1 = quizRepository.findById(quiz).orElse(null);
         if (quiz1 == null) {
@@ -107,10 +113,11 @@ public class QuizService {
             return new ApiResponse("Success!", HttpStatus.OK, responseQuestions.subList(0, questionCount));
         }
 
-        return new ApiResponse("Insufficient number of questions available!", HttpStatus.CONFLICT, responseQuestions);
+        return new ApiResponse("Insufficient number of questions available!", HttpStatus.CONFLICT,responseQuestions);
     }
 
-    public ApiResponse passTest(List<ReqPassTest> passTestList, User user, Long quizId, Long timeTaken) {
+    // test yechish
+    public ApiResponse passTest(List<ReqPassTest> passTestList, User user, Long quizId,Long timeTaken) {
         Quiz quiz = quizRepository.findById(quizId).orElse(null);
         if (quiz == null) {
             return new ApiResponse("Quiz not found!", HttpStatus.NOT_FOUND);
@@ -146,6 +153,7 @@ public class QuizService {
         return new ApiResponse("Test passed successfully!", HttpStatus.OK);
     }
 
+    // idi boyicha categoruiya qidirish
     public ApiResponse getOne(Long id) {
         Quiz quiz = quizRepository.findById(id).orElse(null);
 
@@ -165,7 +173,33 @@ public class QuizService {
         return new ApiResponse("Quiz found!", HttpStatus.OK, responseQuiz);
 
     }
+    public ApiResponse getRandomQuestionsForMultipleQuizzes(List<Long> quizIds) {
+        List<Quiz> quizzes = quizRepository.findAllById(quizIds);
+        if (quizzes.isEmpty()) {
+            return new ApiResponse("One or more quizzes not found!", HttpStatus.NOT_FOUND);
+        }
 
+        List<Question> allQuestions = new ArrayList<>();
+
+        // Har bir quiz uchun savollarni yig'ish
+        for (Long quizId : quizIds) {
+            List<Question> questions = questionRepository.findAllByQuizId(quizId);
+            if (!questions.isEmpty()) {
+                allQuestions.addAll(questions); // Savollarni qo'shish
+            }
+        }
+
+        if (allQuestions.isEmpty()) {
+            return new ApiResponse("No questions found for the selected quizzes!", HttpStatus.NOT_FOUND);
+        }
+
+        // Barcha savollarni tasodifiy aralashtirish
+        Collections.shuffle(allQuestions);
+
+        return new ApiResponse("Random questions retrieved successfully!", HttpStatus.OK, allQuestions);
+    }
+
+    // quizni response qilish
     private ResponseQuiz mapToResponseQuiz(Quiz quiz) {
         return ResponseQuiz.builder()
                 .id(quiz.getId())
