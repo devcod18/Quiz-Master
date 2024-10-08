@@ -14,32 +14,32 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@Tag(name = "Authentication Management",
-        description = "APIs for user and admin registration, login, and activation.")
+@Tag(name = "Auth Controller",
+        description = "Foydalanuvchi va adminni ro'yxatdan o'tkazish, kirish va aktivatsiya uchun API lar.")
 public class AuthController {
 
     private final AuthService authService;
 
     @PostMapping("/register")
-    @Operation(summary = "Register a new user",
-            description = "Allows anyone to register a new user with necessary details.")
+    @Operation(summary = "Yangi foydalanuvchini ro'yxatdan o'tkazish",
+            description = "Har qanday shaxsga zarur ma'lumotlar bilan yangi foydalanuvchini ro'yxatdan o'tkazish imkonini beradi.")
     public ResponseEntity<ApiResponse> registerUser(@Valid @RequestBody RegisterRequest request) {
         ApiResponse apiResponse = authService.registerUser(request);
         return new ResponseEntity<>(apiResponse, apiResponse.getCode());
     }
 
     @PostMapping("/login")
-    @Operation(summary = "User login",
-            description = "Allows a user to log in by providing their email and password.")
+    @Operation(summary = "Foydalanuvchi kirishi",
+            description = "Foydalanuvchi o'z elektron pochta manzili va parolini taqdim etib kirish imkonini beradi.")
     public ResponseEntity<ApiResponse> loginUser(@Valid @RequestBody LoginRequest request) {
         ApiResponse apiResponse = authService.login(request);
         return new ResponseEntity<>(apiResponse, apiResponse.getCode());
     }
 
     @PutMapping("/check-code")
-    @Operation(summary = "Check activation code",
-            description = "Checks the activation code sent to the user's email.")
-    public ResponseEntity<ApiResponse> checkCode(@RequestParam Integer code) {
+    @Operation(summary = "Aktivatsiya kodini tekshirish",
+            description = "Foydalanuvchining elektron pochta manziliga yuborilgan aktivatsiya kodini tekshiradi.")
+    public ResponseEntity<ApiResponse> checkCode(@Valid @RequestParam Integer code) {
         ApiResponse apiResponse = authService.checkCode(code);
         return new ResponseEntity<>(apiResponse, apiResponse.getCode());
     }

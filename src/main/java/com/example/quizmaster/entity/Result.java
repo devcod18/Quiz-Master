@@ -2,9 +2,9 @@ package com.example.quizmaster.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+
 @Entity
 @Getter
 @Setter
@@ -26,22 +26,17 @@ public class Result {
     private int correctAnswers;
 
     @Column(nullable = false)
+    private Long timeTaken;
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column(nullable = false)
     private LocalDateTime startTime;
 
     @Column(nullable = false)
     private LocalDateTime endTime;
 
-    @Column(nullable = false)
-    private Long timeTaken;
-
-    @CreationTimestamp
-    private LocalDateTime createdAt;
-
     @ManyToOne
     private Quiz quiz;
-    @PrePersist
-    public void prePersist() {
-        this.createdAt = LocalDateTime.now();
-    }
-
 }

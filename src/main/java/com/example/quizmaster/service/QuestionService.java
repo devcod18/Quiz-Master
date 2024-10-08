@@ -2,6 +2,7 @@ package com.example.quizmaster.service;
 
 import com.example.quizmaster.entity.Answer;
 import com.example.quizmaster.entity.Question;
+import com.example.quizmaster.entity.Quiz;
 import com.example.quizmaster.payload.ApiResponse;
 import com.example.quizmaster.payload.CustomPageable;
 import com.example.quizmaster.payload.request.RequestAnswer;
@@ -11,6 +12,7 @@ import com.example.quizmaster.payload.response.ResponseQuestion;
 import com.example.quizmaster.repository.AnswerRepository;
 import com.example.quizmaster.repository.QuestionRepository;
 import com.example.quizmaster.repository.QuizRepository;
+import com.example.quizmaster.repository.UserAnswerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,11 +25,12 @@ import java.util.List;
 @RequiredArgsConstructor
 @Service
 public class QuestionService {
-
     private final QuestionRepository questionRepository;
     private final QuizRepository quizRepository;
     private final AnswerRepository answerRepository;
+    private final UserAnswerRepository userAnswerRepository;
 
+    // Savolni saqlash
     public ApiResponse saveQuestion(RequestQuestion requestQuestion) {
         Question question = Question.builder()
                 .question_text(requestQuestion.getText())
@@ -36,7 +39,6 @@ public class QuestionService {
                 .build();
 
         Question savedQuestion = questionRepository.save(question);
-
         List<Answer> answers = new ArrayList<>();
         int correctAnswerCount = 0;
 
@@ -56,14 +58,14 @@ public class QuestionService {
         }
 
         if (correctAnswerCount != 1) {
-            return new ApiResponse("Only one answer must be marked as correct!", HttpStatus.BAD_REQUEST);
+            return new ApiResponse("Faqat bitta javob to'g'ri belgilanishi kerak!", HttpStatus.BAD_REQUEST);
         }
 
         savedQuestion.setAnswers(answers);
-
-        return new ApiResponse("Question saved successfully!", HttpStatus.CREATED);
+        return new ApiResponse("Savol muvaffaqiyatli saqlandi!", HttpStatus.CREATED);
     }
 
+    // Barcha savollarni olish
     public ApiResponse getAllQuestion(int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
         Page<Question> questionPage = questionRepository.findAll(pageRequest);
@@ -77,38 +79,41 @@ public class QuestionService {
                 .data(responseQuestions)
                 .build();
 
-        return new ApiResponse("Questions retrieved successfully!", HttpStatus.OK, pageableResponse);
-
+        return new ApiResponse("Savollar muvaffaqiyatli olindi!", HttpStatus.OK, pageableResponse);
     }
 
+    // Savolni yangilash
     public ApiResponse updateQuestion(Long id, RequestQuestion requestQuestion) {
         Question question = questionRepository.findById(id).orElse(null);
         if (question == null) {
-            return new ApiResponse("Question not found!", HttpStatus.NOT_FOUND);
+            return new ApiResponse("Savol topilmadi!", HttpStatus.NOT_FOUND);
         }
 
         question.setQuestion_text(requestQuestion.getText());
         question.setQuiz(quizRepository.findById(requestQuestion.getQuizId()).orElse(null));
         if (question.getQuiz() == null) {
-            return new ApiResponse("Quiz not found!", HttpStatus.NOT_FOUND);
+            return new ApiResponse("Quiz topilmadi!", HttpStatus.NOT_FOUND);
         }
 
         List<Answer> updatedAnswers = new ArrayList<>();
+        int correctAnswerCount = 0; // To'g'ri javob sonini hisoblash
+
         for (RequestAnswer requestAnswer : requestQuestion.getAnswerList()) {
-            Answer answer;
-
-            if (requestAnswer.getId() != null) {
-                answer = answerRepository.findById(requestAnswer.getId())
-                        .orElse(new Answer());
-            } else {
-                answer = new Answer();
-            }
-
+            Answer answer = new Answer();
             answer.setAnswerText(requestAnswer.getText());
             answer.setIsCorrect(requestAnswer.isCorrect());
             answer.setQuestion(question);
 
+            if (requestAnswer.isCorrect()) {
+                correctAnswerCount++;
+            }
+
             updatedAnswers.add(answerRepository.save(answer));
+        }
+
+        // To'g'ri javob faqat bitta bo'lishini tekshirish
+        if (correctAnswerCount != 1) {
+            return new ApiResponse("Faqat bitta javob to'g'ri bo'lishi kerak!", HttpStatus.BAD_REQUEST);
         }
 
         List<Answer> existingAnswers = question.getAnswers();
@@ -118,60 +123,77 @@ public class QuestionService {
                 .forEach(answerRepository::delete);
 
         question.setAnswers(updatedAnswers);
-
         questionRepository.save(question);
 
-        return new ApiResponse("Question updated successfully!", HttpStatus.OK);
+        return new ApiResponse("Savol muvaffaqiyatli yangilandi!", HttpStatus.OK);
     }
 
-    public ApiResponse deleteQuestion(Long id) {
-        Question question = questionRepository.findById(id).orElse(null);
+
+    // Savolni o'chirish
+//
+    public ApiResponse deleteQuestion(Long questionId) {
+        Question question = questionRepository.findById(questionId).orElse(null);
+
         if (question == null) {
-            return new ApiResponse("Question not found!", HttpStatus.NOT_FOUND);
+            return new ApiResponse("Question topilmadi!", HttpStatus.NOT_FOUND);
         }
+        // 1. UserAnswer larni o'chirish
+        userAnswerRepository.deleteByQuestionId(questionId);
 
-        answerRepository.deleteAll(question.getAnswers());
+        // 2. Answer larni o'chirish
+        answerRepository.deleteByQuestionId(questionId);
 
+        // 3. Question ni o'chirish
         questionRepository.delete(question);
 
-        return new ApiResponse("Question deleted successfully!", HttpStatus.OK);
+        // 4. Agar kerak bo'lsa, Quiz dagi question_count ni yangilash
+        Quiz quiz = question.getQuiz();
+        if (quiz != null) {
+            quiz.setQuestionCount(quiz.getQuestionCount() - 1);
+            // quizRepository.save(quiz); // Agar @Transactional ishlatilmasa, buni qo'shish kerak
+        }
+        return new ApiResponse("Question muvaffaqiyatli o'chirildi!", HttpStatus.OK);
     }
 
+    // Bitta savolni olish
     public ApiResponse getOne(Long id) {
         Question question = questionRepository.findById(id).orElse(null);
         if (question == null) {
-            return new ApiResponse("Question not found!", HttpStatus.NOT_FOUND);
+            return new ApiResponse("Savol topilmadi!", HttpStatus.NOT_FOUND);
         }
 
-        ResponseQuestion responseQuestion = (ResponseQuestion) toResponseQuestion((List<Question>) question);
-
-        return new ApiResponse("Question retrieved successfully!", HttpStatus.OK, responseQuestion);
+        ResponseQuestion responseQuestion = toResponseQuestion(question);
+        return new ApiResponse("Savol muvaffaqiyatli olindi!", HttpStatus.OK, responseQuestion);
     }
 
+    // Savollarni Response formatiga o'zgartirish
     public List<ResponseQuestion> toResponseQuestion(List<Question> questions) {
         List<ResponseQuestion> responseQuestions = new ArrayList<>();
-
         for (Question question : questions) {
-            List<ResponseAnswer> responseAnswers = new ArrayList<>();
-            for (Answer answer : question.getAnswers()) {
-                ResponseAnswer responseAnswer = ResponseAnswer.builder()
-                        .id(answer.getId())
-                        .text(answer.getAnswerText())
-                        .isCorrect(answer.getIsCorrect())
-                        .questionId(answer.getQuestion().getId())
-                        .build();
-
-                responseAnswers.add(responseAnswer);
-            }
-            ResponseQuestion responseQuestion = ResponseQuestion.builder()
-                    .id(question.getId())
-                    .text(question.getQuestion_text())
-                    .answers(responseAnswers)
-                    .quizId(question.getQuiz().getId())
-                    .build();
-            responseQuestions.add(responseQuestion);
+            responseQuestions.add(toResponseQuestion(question));
         }
-
         return responseQuestions;
     }
+
+    // Bitta savolni Response formatiga o'zgartirish
+    public ResponseQuestion toResponseQuestion(Question question) {
+        List<ResponseAnswer> responseAnswers = new ArrayList<>();
+        for (Answer answer : question.getAnswers()) {
+            ResponseAnswer responseAnswer = ResponseAnswer.builder()
+                    .id(answer.getId())
+                    .text(answer.getAnswerText())
+                    .isCorrect(answer.getIsCorrect())
+                    .questionId(answer.getQuestion().getId())
+                    .build();
+            responseAnswers.add(responseAnswer);
+        }
+        return ResponseQuestion.builder()
+                .id(question.getId())
+                .text(question.getQuestion_text())
+                .answers(responseAnswers)
+                .quizId(question.getQuiz().getId())
+                .build();
+    }
+
+
 }

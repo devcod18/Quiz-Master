@@ -16,15 +16,14 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/user")
 @RequiredArgsConstructor
-@Tag(name = "User Controller",
-        description = "Handles user management operations including admin management and user search")
+@Tag(name = "User Controller", description = "Foydalanuvchilarni boshqarish va ularning profiliga oid operatsiyalarni amalga oshiradi.")
 public class UserController {
 
     private final UserService userService;
 
     @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
-    @Operation(summary = "Create new admin",
-            description = "Allows super admin to create a new admin user")
+    @Operation(summary = "Yangi admin yaratish",
+            description = "Super admin yangi admin foydalanuvchini yaratishi mumkin")
     @PostMapping("/save-admin")
     public ResponseEntity<ApiResponse> saveAdmin(
             @Valid @RequestBody RegisterRequest request) {
@@ -33,8 +32,8 @@ public class UserController {
     }
 
     @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
-    @Operation(summary = "Fetch all admins",
-            description = "Fetches a paginated list of admin users")
+    @Operation(summary = "Barcha adminlarni olish",
+            description = "Barcha admin foydalanuvchilarning sahifalangan ro'yxatini oladi")
     @GetMapping("/admins")
     public ResponseEntity<ApiResponse> getAllAdmins(
             @Valid @RequestParam(name = "page", defaultValue = "0") int page,
@@ -43,8 +42,8 @@ public class UserController {
         return ResponseEntity.ok(allAdmins);
     }
 
-    @Operation(summary = "Search users by name",
-            description = "Searches users by their first name")
+    @Operation(summary = "Foydalanuvchilarni ism bo'yicha qidirish",
+            description = "Foydalanuvchilarni ularning ismi bo'yicha qidiradi")
     @GetMapping("/search")
     public ResponseEntity<ApiResponse> search(
             @Valid @RequestParam String name,
@@ -54,8 +53,8 @@ public class UserController {
     }
 
     @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN','ROLE_ADMIN','ROLE_USER')")
-    @Operation(summary = "Get my profile",
-            description = "Shows the profile of the currently logged-in user")
+    @Operation(summary = "Mening profilimni ko'rish",
+            description = "Joriy tizimga kirgan foydalanuvchining profilini ko'rsatadi")
     @GetMapping("/get/me")
     public ResponseEntity<ApiResponse> getMe(@Valid @CurrentUser User user) {
         ApiResponse me = userService.getMe(user);
@@ -63,8 +62,8 @@ public class UserController {
     }
 
     @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN', 'ROLE_ADMIN')")
-    @Operation(summary = "Fetch all users",
-            description = "Fetches a paginated list of all users")
+    @Operation(summary = "Barcha foydalanuvchilarni olish",
+            description = "Barcha foydalanuvchilarning sahifalangan ro'yxatini oladi")
     @GetMapping("/all/user")
     public ResponseEntity<ApiResponse> getAllUsers(
             @Valid @RequestParam(name = "page", defaultValue = "0") int page,
@@ -74,8 +73,8 @@ public class UserController {
     }
 
     @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_USER')")
-    @Operation(summary = "Update user profile",
-            description = "Allows users to update their profile")
+    @Operation(summary = "Foydalanuvchi profilini yangilash",
+            description = "Foydalanuvchilarga o'z profilini yangilash imkonini beradi")
     @PutMapping("/update/{userId}")
     public ResponseEntity<ApiResponse> updateProfile(@Valid @PathVariable Long userId,
                                                      @RequestBody RegisterRequest request) {
@@ -83,32 +82,31 @@ public class UserController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN', 'ROLE_ADMIN')")
-    @Operation(summary = "Get one user by ID",
-            description = "Fetches details of a single user by its user ID for users with SUPER_ADMIN or ADMIN roles.")
-    @PutMapping("/getOne/{userId}")
-    public ResponseEntity<ApiResponse> getOne(@Valid @PathVariable Long userId) {
-        ApiResponse one = userService.getOne(userId);
-        return ResponseEntity.ok(one);
-    }
-
     @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
-    @Operation(summary = "Confirm user email",
-            description = "Sends a confirmation code to the specified email for verification.")
-    @PutMapping("/confirmEmail")
-    public ResponseEntity<ApiResponse> confirmEmail(@Valid @RequestParam String email) {
-        ApiResponse response = userService.sendConfirmationCode(email);
+    @Operation(summary = "Emailni tasdiqlash",
+            description = "Foydalanuvchiga email tasdiqlash kodi yuboradi")
+    @PutMapping("/forgotEmail")
+    public ResponseEntity<ApiResponse> forgotEmail(@Valid @CurrentUser User user) {
+        ApiResponse response = userService.sendConfirmationCode(user);
         return ResponseEntity.ok(response);
     }
 
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
-    @Operation(summary = "Update password",
-            description = "Allows the user to reset their password using a confirmation code.")
+    @Operation(summary = "Parolni yangilash",
+            description = "Tasdiqlash kodi orqali foydalanuvchi parolini yangilaydi")
     @PutMapping("/updatePassword")
     public ResponseEntity<ApiResponse> updatePassword(@Valid @RequestParam Integer code,
                                                       @RequestParam String newPassword,
                                                       @RequestParam String confirmPassword) {
         ApiResponse response = userService.resetPasswordWithCode(code, newPassword, confirmPassword);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Foydalanuvchini ID bo'yicha olish",
+            description = "Berilgan ID bo'yicha foydalanuvchini qaytaradi.")
+    @GetMapping("/getOne/{id}")
+    public ResponseEntity<ApiResponse> getOne(@PathVariable Long id) {
+        ApiResponse response = userService.getOne(id);
         return ResponseEntity.ok(response);
     }
 

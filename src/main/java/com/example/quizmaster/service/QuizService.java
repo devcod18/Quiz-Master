@@ -18,8 +18,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,9 +32,8 @@ public class QuizService {
     private final ResultRepository resultRepository;
     private final AnswerRepository answerRepository;
 
-    // categoriya saqlash
+    // Yangi testni saqlash
     public ApiResponse save(RequestQuiz requestQuiz) {
-
         Quiz quiz = Quiz.builder()
                 .title(requestQuiz.getTitle())
                 .description(requestQuiz.getDescription())
@@ -46,10 +43,10 @@ public class QuizService {
                 .build();
 
         quizRepository.save(quiz);
-        return new ApiResponse("Quiz saved successfully!", HttpStatus.CREATED);
+        return new ApiResponse("Test muvaffaqiyatli saqlandi!", HttpStatus.CREATED);
     }
 
-    // categoriyalarni olish
+    // Barcha testlarni olish
     public ApiResponse getAll(int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
         Page<Quiz> quizPage = quizRepository.findAll(pageRequest);
@@ -66,14 +63,14 @@ public class QuizService {
                 .data(responseQuizList)
                 .build();
 
-        return new ApiResponse("Quizzes retrieved successfully!", HttpStatus.OK, pageable);
+        return new ApiResponse("Testlar muvaffaqiyatli olindi!", HttpStatus.OK, pageable);
     }
 
-    // categoriyani yangilash
+    // Testni yangilash
     public ApiResponse update(Long id, RequestQuiz requestQuiz) {
         Quiz quiz = quizRepository.findById(id).orElse(null);
         if (quiz == null) {
-            return new ApiResponse("Quiz not found!", HttpStatus.NOT_FOUND);
+            return new ApiResponse("Test topilmadi!", HttpStatus.NOT_FOUND);
         }
 
         quiz.setTitle(requestQuiz.getTitle());
@@ -82,48 +79,46 @@ public class QuizService {
         quiz.setTimeLimit(requestQuiz.getTimeLimit());
 
         quizRepository.save(quiz);
-        return new ApiResponse("Quiz updated successfully!", HttpStatus.OK);
+        return new ApiResponse("Test muvaffaqiyatli yangilandi!", HttpStatus.OK);
     }
 
-    // o'chirish
+    // Testni o'chirish
     public ApiResponse delete(Long id) {
         Quiz quiz = quizRepository.findById(id).orElse(null);
-        if (quiz  == null){
-            return new ApiResponse("Quiz not found!",HttpStatus.NOT_FOUND);
+        if (quiz == null) {
+            return new ApiResponse("Test topilmadi!", HttpStatus.NOT_FOUND);
         }
 
         quizRepository.delete(quiz);
-        return new ApiResponse("Quiz deleted successfully!", HttpStatus.OK);
+        return new ApiResponse("Test muvaffaqiyatli o'chirildi!", HttpStatus.OK);
     }
 
-    // categoriya boyicha random savollar chiqarish
-    public ApiResponse getRandomQuestionsForQuiz(Long quiz) {
-        Quiz quiz1 = quizRepository.findById(quiz).orElse(null);
-        if (quiz1 == null) {
-            return new ApiResponse("Quiz not found!", HttpStatus.NOT_FOUND);
+    // Test uchun tasodifiy savollarni olish
+    public ApiResponse getRandomQuestionsForQuiz(Long quizId) {
+        Quiz quiz = quizRepository.findById(quizId).orElse(null);
+        if (quiz == null) {
+            return new ApiResponse("Test topilmadi!", HttpStatus.NOT_FOUND);
         }
 
-        List<Question> allQuestions = questionRepository.findAllByQuizId(quiz);
+        List<Question> allQuestions = questionRepository.findAllByQuizId(quizId);
         List<ResponseQuestion> responseQuestions = questionService.toResponseQuestion(allQuestions);
         Collections.shuffle(responseQuestions);
 
-        int questionCount = quiz1.getQuestionCount();
+        int questionCount = quiz.getQuestionCount();
 
         if (responseQuestions.size() > questionCount) {
-            return new ApiResponse("Success!", HttpStatus.OK, responseQuestions.subList(0, questionCount));
+            return new ApiResponse("Muvaffaqiyat!", HttpStatus.OK, responseQuestions.subList(0, questionCount));
         }
 
-        return new ApiResponse("Insufficient number of questions available!", HttpStatus.CONFLICT,responseQuestions);
+        return new ApiResponse("Yetarli savollar mavjud emas!", HttpStatus.CONFLICT, responseQuestions);
     }
 
-    // test yechish
-    public ApiResponse passTest(List<ReqPassTest> passTestList, User user, Long quizId,Long timeTaken) {
+    // Testni o'tkazish
+    public ApiResponse passTest(List<ReqPassTest> passTestList, User user, Long quizId, Long timeTaken) {
         Quiz quiz = quizRepository.findById(quizId).orElse(null);
         if (quiz == null) {
-            return new ApiResponse("Quiz not found!", HttpStatus.NOT_FOUND);
+            return new ApiResponse("Test topilmadi!", HttpStatus.NOT_FOUND);
         }
-
-        LocalDateTime startTime = LocalDateTime.now();
 
         List<Long> questionIds = passTestList.stream()
                 .map(ReqPassTest::getQuestionId)
@@ -136,29 +131,23 @@ public class QuizService {
                         .anyMatch(answer -> answer.getId().equals(reqPassTest.getAnswerId())))
                 .count();
 
-        LocalDateTime endTime = LocalDateTime.now();
-
-
         Result result = Result.builder()
                 .correctAnswers((int) correctCountAnswers)
                 .quiz(quiz)
                 .totalQuestion(passTestList.size())
                 .user(user)
-                .startTime(startTime)
-                .endTime(endTime)
                 .timeTaken(timeTaken)
                 .build();
 
         resultRepository.save(result);
-        return new ApiResponse("Test passed successfully!", HttpStatus.OK);
+        return new ApiResponse("Test muvaffaqiyatli o'tkazildi!", HttpStatus.OK);
     }
 
-    // idi boyicha categoruiya qidirish
+    // Bitta testni olish
     public ApiResponse getOne(Long id) {
         Quiz quiz = quizRepository.findById(id).orElse(null);
-
         if (quiz == null) {
-            return new ApiResponse("Quiz not found!", HttpStatus.NOT_FOUND);
+            return new ApiResponse("Test topilmadi!", HttpStatus.NOT_FOUND);
         }
 
         ResponseQuiz responseQuiz = ResponseQuiz.builder()
@@ -170,36 +159,35 @@ public class QuizService {
                 .questionCount(quiz.getQuestionCount())
                 .build();
 
-        return new ApiResponse("Quiz found!", HttpStatus.OK, responseQuiz);
-
+        return new ApiResponse("Test topildi!", HttpStatus.OK, responseQuiz);
     }
+
+    // Bir nechta testlar uchun tasodifiy savollarni olish
     public ApiResponse getRandomQuestionsForMultipleQuizzes(List<Long> quizIds) {
         List<Quiz> quizzes = quizRepository.findAllById(quizIds);
         if (quizzes.isEmpty()) {
-            return new ApiResponse("One or more quizzes not found!", HttpStatus.NOT_FOUND);
+            return new ApiResponse("Bir yoki bir necha test topilmadi!", HttpStatus.NOT_FOUND);
         }
 
-        List<Question> allQuestions = new ArrayList<>();
+        List<Question> allQuestions = quizzes.stream()
+                .flatMap(quiz -> questionRepository
+                .findAllByQuizId(quiz.getId()).stream()).toList();
 
-        // Har bir quiz uchun savollarni yig'ish
-        for (Long quizId : quizIds) {
-            List<Question> questions = questionRepository.findAllByQuizId(quizId);
-            if (!questions.isEmpty()) {
-                allQuestions.addAll(questions); // Savollarni qo'shish
-            }
+        List<ResponseQuestion> responseQuestions = questionService.toResponseQuestion(allQuestions);
+        Collections.shuffle(responseQuestions);
+
+        int totalQuestionCount = quizzes.stream()
+                .mapToInt(Quiz::getQuestionCount)
+                .sum();
+
+        if (responseQuestions.size() >= totalQuestionCount) {
+            return new ApiResponse("Muvaffaqiyat!", HttpStatus.OK, responseQuestions.subList(0, totalQuestionCount));
         }
 
-        if (allQuestions.isEmpty()) {
-            return new ApiResponse("No questions found for the selected quizzes!", HttpStatus.NOT_FOUND);
-        }
-
-        // Barcha savollarni tasodifiy aralashtirish
-        Collections.shuffle(allQuestions);
-
-        return new ApiResponse("Random questions retrieved successfully!", HttpStatus.OK, allQuestions);
+        return new ApiResponse("Yetarli savollar mavjud emas!", HttpStatus.CONFLICT, responseQuestions);
     }
 
-    // quizni response qilish
+    // Testlarni javob formatiga o'zgartirish
     private ResponseQuiz mapToResponseQuiz(Quiz quiz) {
         return ResponseQuiz.builder()
                 .id(quiz.getId())

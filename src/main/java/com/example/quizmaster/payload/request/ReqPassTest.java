@@ -10,11 +10,6 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class ReqPassTest {
-    @NotNull(message = "Question ID cannot be null")
-    @Positive(message = "Question ID must be a positive value")
     private Long questionId;
-
-    @NotNull(message = "Answer ID cannot be null")
-    @Positive(message = "Answer ID must be a positive value")
     private Long answerId;
 }

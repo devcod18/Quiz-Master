@@ -1,8 +1,6 @@
 package com.example.quizmaster.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.util.List;
@@ -20,10 +18,9 @@ public class Question {
     private Long id;
 
     @ManyToOne
-    @NotNull(message = "Quiz cannot be null")
+    @JoinColumn(name = "quiz_id", nullable = true)
     private Quiz quiz;
 
-    @NotBlank(message = "Question text cannot be blank")
     private String question_text;
 
     @OneToMany(mappedBy = "question", cascade = CascadeType.REMOVE)

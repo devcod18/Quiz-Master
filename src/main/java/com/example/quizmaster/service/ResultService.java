@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 public class ResultService {
     private final ResultRepository resultRepository;
 
+    // Foydalanuvchining barcha test natijalarini olish
     public ApiResponse getUserResults(User user) {
         List<ResponseResults> resultList = resultRepository
                 .findAllByUserId(user.getId())
@@ -31,9 +32,10 @@ public class ResultService {
                         .build())
                 .collect(Collectors.toList());
 
-        return new ApiResponse("Successfully retrieved user results", HttpStatus.OK, resultList);
+        return new ApiResponse("Foydalanuvchi natijalari muvaffaqiyatli olindi", HttpStatus.OK, resultList);
     }
 
+    // Foydalanuvchining so'nggi test natijasini olish
     public ApiResponse lastTestResult(User user) {
         List<Result> allResults = resultRepository.findAllByUserId(user.getId());
 
@@ -51,11 +53,9 @@ public class ResultService {
                     .user(latestResult.getUser().getId())
                     .build();
 
-            return new ApiResponse("Successfully retrieved last test result", HttpStatus.OK, responseResult);
+            return new ApiResponse("So'nggi test natijasi muvaffaqiyatli olindi", HttpStatus.OK, responseResult);
         } else {
-            return new ApiResponse("No test results found for the user", HttpStatus.NOT_FOUND, null);
+            return new ApiResponse("Foydalanuvchi uchun test natijalari topilmadi", HttpStatus.NOT_FOUND, null);
         }
     }
-
-
 }

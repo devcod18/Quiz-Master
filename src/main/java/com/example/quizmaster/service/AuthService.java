@@ -25,13 +25,9 @@ public class AuthService {
     private final EmailSenderService emailSenderService;
 
     public ApiResponse registerUser(RegisterRequest request) {
-        if (!isValidEmail(request.email())) {
-            return new ApiResponse("Invalid email format. Only Gmail addresses are allowed!", HttpStatus.BAD_REQUEST, null);
-        }
-
         boolean userExists = userRepository.existsByEmail(request.email());
         if (userExists) {
-            return new ApiResponse("User with this email already exists!", HttpStatus.BAD_REQUEST, null);
+            return new ApiResponse("Bu email bilan foydalanuvchi allaqachon ro'yxatdan o'tgan!", HttpStatus.BAD_REQUEST, null);
         }
 
         Integer code = generateFiveDigitNumber();
@@ -49,16 +45,16 @@ public class AuthService {
         userRepository.save(user);
 
         String emailContent = String.format(
-                "Hi %s!\n\n" +
-                        "We at Quiz Master are excited to welcome you to our platform!\n\n" +
-                        "To confirm your registration, please enter the following code: %d\n\n" +
-                        "Do not share this code. If you did’t request this, contact support!\n\n" +
-                        "Best regards! The Quiz Master Team!"
+                "Salom %s!\n\n" +
+                        "Quiz Master platformasiga xush kelibsiz!\n\n" +
+                        "Ro'yxatdan o'tishni tasdiqlash uchun quyidagi kodni kiriting: %d\n\n" +
+                        "Bu kodni hech kimga bermang. Agar bu so'rovni siz yubormagan bo'lsangiz, qo'llab-quvvatlash xizmatiga murojaat qiling!\n\n" +
+                        "Eng yaxshi tilaklar bilan! Quiz Master jamoasi!"
                 , name, code);
 
-        emailSenderService.sendEmail(request.email(), "CONFIRM YOUR EMAIL!", emailContent);
+        emailSenderService.sendEmail(request.email(), "EMAILINGIZNI TASDIQLANG!", emailContent);
 
-        return new ApiResponse("User successfully registered!", HttpStatus.CREATED, null);
+        return new ApiResponse("Foydalanuvchi muvaffaqiyatli ro'yxatdan o'tdi!", HttpStatus.CREATED, null);
     }
 
     public ApiResponse login(LoginRequest request) {
@@ -69,39 +65,34 @@ public class AuthService {
             if (passwordEncoder.matches(request.password(), user.getPassword())) {
                 if (user.isEnabled()) {
                     String token = jwtProvider.generateToken(user.getEmail());
-                    return new ApiResponse("Login successful", HttpStatus.OK, token);
+                    return new ApiResponse("Kirish muvaffaqiyatli amalga oshirildi", HttpStatus.OK, token);
                 }
-                return new ApiResponse("Your email is not activated", HttpStatus.BAD_REQUEST, null);
+                return new ApiResponse("Emailingiz hali faollashtirilmagan", HttpStatus.BAD_REQUEST, null);
             }
-            return new ApiResponse("Incorrect password", HttpStatus.BAD_REQUEST, null);
+            return new ApiResponse("Noto'g'ri parol", HttpStatus.BAD_REQUEST, null);
         }
 
-        return new ApiResponse("Email not found", HttpStatus.NOT_FOUND, null);
+        return new ApiResponse("Email topilmadi", HttpStatus.NOT_FOUND, null);
     }
 
     public ApiResponse checkCode(Integer code) {
         User userOptional = userRepository.findByActivationCode(code);
         if (userOptional == null) {
-            return new ApiResponse("User not found", HttpStatus.NOT_FOUND);
+            return new ApiResponse("Foydalanuvchi topilmadi", HttpStatus.NOT_FOUND);
         }
 
         if (userOptional.getActivationCode().equals(code)) {
             userOptional.setActivationCode(null);
             userOptional.setEnabled(true);
             userRepository.save(userOptional);
-            return new ApiResponse("Successfully activated", HttpStatus.OK);
+            return new ApiResponse("Muvaffaqiyatli faollashtirildi", HttpStatus.OK);
         }
-        return new ApiResponse("Invalid activation code", HttpStatus.NOT_FOUND, null);
+        return new ApiResponse("Noto'g'ri faollashtirish kodi", HttpStatus.NOT_FOUND, null);
     }
 
     private String extractNameFromEmail(String email) {
         String localPart = email.split("@")[0];
         return localPart.substring(0, 1).toUpperCase() + localPart.substring(1);
-    }
-
-    private boolean isValidEmail(String email) {
-        String emailRegex = "^[a-zA-Z0-9._%+-]+@gmail\\.com$";
-        return email != null && email.matches(emailRegex);
     }
 
     public int generateFiveDigitNumber() {

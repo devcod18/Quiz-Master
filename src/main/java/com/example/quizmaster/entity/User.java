@@ -6,8 +6,6 @@ import jakarta.persistence.Entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -28,23 +26,16 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "First name cannot be blank")
-    @Size(min = 5, message = "First name must be at least 5 characters long")
     @Column(nullable = false)
     private String firstName;
 
-    @NotBlank(message = "Last name cannot be blank")
-    @Size(min = 5, message = "Last name must be at least 5 characters long")
     @Column(nullable = false)
     private String lastName;
 
-    @Email(message = "Email should be valid")
-    @NotBlank(message = "Email cannot be blank")
+    @Email()
     @Column(unique = true, nullable = false)
     private String email;
 
-    @NotBlank(message = "Password cannot be blank")
-    @Size(min = 8, message = "Password must be at least 8 characters long")
     @Column(nullable = false)
     private String password;
 
