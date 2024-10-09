@@ -37,7 +37,7 @@ public class Result {
     @Column(nullable = false)
     private LocalDateTime endTime;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private Quiz quiz;
 
     @PrePersist

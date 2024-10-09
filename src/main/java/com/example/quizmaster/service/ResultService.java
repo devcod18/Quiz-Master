@@ -20,7 +20,7 @@ public class ResultService {
     // Foydalanuvchining barcha test natijalarini olish
     public ApiResponse getUserResults(User user) {
         List<ResponseResults> resultList = resultRepository
-                .findAllByUserId(user.getId())
+                .findByUserIdOrderByIdDesc(user.getId())
                 .stream()
                 .map(result -> ResponseResults.builder()
                         .id(result.getId())

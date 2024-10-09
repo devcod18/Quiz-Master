@@ -2,6 +2,7 @@ package com.example.quizmaster.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Cascade;
 
 import java.util.List;
 
@@ -17,8 +18,8 @@ public class Question {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "quiz_id", nullable = true)
+    @ManyToOne(cascade = CascadeType.REMOVE)
+    @JoinColumn(name = "quiz_id", nullable = false)
     private Quiz quiz;
 
     private String question_text;

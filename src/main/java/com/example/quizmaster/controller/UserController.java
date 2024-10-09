@@ -43,7 +43,7 @@ public class UserController {
     }
 
     @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN', 'ROLE_ADMIN')")
-    @Operation(summary = "Foydalanuvchilarni ism bo'yicha qidirish",
+    @Operation(summary = "Foydalanuvchilarni ism bo'yicha qidirish admin uchun",
             description = "Foydalanuvchilarni ularning ismi bo'yicha qidiradi")
     @GetMapping("/search")
     public ResponseEntity<ApiResponse> search(
@@ -53,7 +53,7 @@ public class UserController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @Operation(summary = "Foydalanuvchilarni ism bo'yicha qidirish",
+    @Operation(summary = "Foydalanuvchilarni ism bo'yicha qidirish user uchun",
             description = "Foydalanuvchilarni ularning ismi bo'yicha qidiradi")
     @GetMapping("/search/user")
     public ResponseEntity<ApiResponse> searchUser(
@@ -86,10 +86,10 @@ public class UserController {
     @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_USER')")
     @Operation(summary = "Foydalanuvchi profilini yangilash",
             description = "Foydalanuvchilarga o'z profilini yangilash imkonini beradi")
-    @PutMapping("/update/{userId}")
-    public ResponseEntity<ApiResponse> updateProfile(@Valid @PathVariable Long userId,
+    @PutMapping("/update")
+    public ResponseEntity<ApiResponse> updateProfile(@Valid @CurrentUser User user,
                                                      @RequestBody RegisterRequest request) {
-        ApiResponse apiResponse = userService.updateUser(userId, request);
+        ApiResponse apiResponse = userService.updateUser(user, request);
         return ResponseEntity.ok(apiResponse);
     }
 

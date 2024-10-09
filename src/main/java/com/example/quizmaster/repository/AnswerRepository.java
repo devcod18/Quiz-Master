@@ -12,7 +12,7 @@ public interface AnswerRepository extends JpaRepository<Answer, Long> {
     List<Answer> findCorrectAnswersByQuestionIds(@Param("questionIds") List<Long> questionIds);
 
     // AnswerRepository ichiga metod
-    List<Answer> findByQuestionId(Long questionId);
 
+    List<Answer> findByQuestionId(Long question);
 
 }

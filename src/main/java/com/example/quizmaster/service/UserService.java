@@ -90,13 +90,7 @@ public class UserService {
         return new ApiResponse("Muvaffaqiyatli", HttpStatus.OK, toResponseUser(user));
     }
 
-    public ApiResponse updateUser(Long userId, RegisterRequest request) {
-        Optional<User> optionalUser = userRepository.findById(userId);
-        if (optionalUser.isEmpty()) {
-            return new ApiResponse("Foydalanuvchi topilmadi!", HttpStatus.NOT_FOUND);
-        }
-
-        User user = optionalUser.get();
+    public ApiResponse updateUser(User user, RegisterRequest request) {
         user.setFirstName(request.firstName());
         user.setLastName(request.lastName());
 

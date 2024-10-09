@@ -79,7 +79,7 @@ public class QuizController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN', 'ROLE_ADMIN','ROLE_USER')")
     @Operation(summary = "Bir testni ID orqali olish", description = "Berilgan quiz ID orqali bitta test haqida ma'lumot oladi.")
     @GetMapping("/getOneQuiz/{quizId}")
     public ResponseEntity<ApiResponse> getOneQuiz(@Valid @PathVariable Long quizId) {

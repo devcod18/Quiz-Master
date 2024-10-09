@@ -11,7 +11,7 @@ import com.example.quizmaster.repository.AnswerRepository;
 import com.example.quizmaster.repository.QuestionRepository;
 import com.example.quizmaster.repository.QuizRepository;
 import com.example.quizmaster.repository.ResultRepository;
-import jakarta.validation.Valid;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -41,6 +41,7 @@ public class QuizService {
                 .createdAt(LocalDateTime.now())
                 .questionCount(requestQuiz.getQuestionCount())
                 .timeLimit(requestQuiz.getTimeLimit())
+                .deleted(false)
                 .build();
 
         quizRepository.save(quiz);
@@ -89,7 +90,7 @@ public class QuizService {
             return new ApiResponse("Test topilmadi!", HttpStatus.NOT_FOUND);
         }
 
-        quizRepository.delete(quiz);
+        quiz.setDeleted(true);
         return new ApiResponse("Test muvaffaqiyatli o'chirildi!", HttpStatus.OK);
     }
 
@@ -99,22 +100,19 @@ public class QuizService {
         if (quiz == null) {
             return new ApiResponse("Test topilmadi!", HttpStatus.NOT_FOUND);
         }
-
-        List<Question> allQuestions = questionRepository.findAllByQuizId(quizId);
+        int questionCount = quiz.getQuestionCount();
+        List<Question> allQuestions = questionRepository.findRandomQuestionsByQuizId(quizId, questionCount);
         if (allQuestions.isEmpty()) {
             return new ApiResponse("Quizga tegishli savollar mavjud emas!", HttpStatus.NOT_FOUND);
         }
 
         List<ResponseQuestion> responseQuestions = questionService.toResponseQuestion(allQuestions);
-        Collections.shuffle(responseQuestions);
-
-        int questionCount = quiz.getQuestionCount();
 
         if (responseQuestions.size() >= questionCount) {
-            return new ApiResponse("Muvaffaqiyat!", HttpStatus.OK, responseQuestions.subList(0, questionCount));
+            return new ApiResponse("Yetarli savollar mavjud emas!", HttpStatus.OK, responseQuestions.subList(0, questionCount));
         }
 
-        return new ApiResponse("Yetarli savollar mavjud emas!", HttpStatus.OK, responseQuestions);
+        return new ApiResponse("Muvaffaqiyatli!", HttpStatus.OK, responseQuestions);
     }
 
     // testni otkazish
@@ -223,7 +221,6 @@ public class QuizService {
         return new ApiResponse("Muvaffaqiyat!", HttpStatus.OK, responseQuestions);
     }
 
-
     // Testlarni javob formatiga o'zgartirish
     private ResponseQuiz mapToResponseQuiz(Quiz quiz) {
         return ResponseQuiz.builder()
@@ -236,9 +233,4 @@ public class QuizService {
                 .questionCount(quiz.getQuestionCount())
                 .build();
     }
-
-
-
-
-
 }
