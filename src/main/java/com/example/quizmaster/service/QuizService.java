@@ -161,15 +161,6 @@ public class QuizService {
             return new ApiResponse("Test topilmadi!", HttpStatus.NOT_FOUND);
         }
 
-        ResponseQuiz responseQuiz = ResponseQuiz.builder()
-                .id(quiz.getId())
-                .title(quiz.getTitle())
-                .description(quiz.getDescription())
-                .createdAt(quiz.getCreatedAt())
-                .timeLimit(quiz.getTimeLimit())
-                .questionCount(quiz.getQuestionCount())
-                .updatedAt(quiz.getUpdatedAt())
-                .build();
 
         return new ApiResponse("Test topildi!", HttpStatus.OK, responseQuiz);
     }
