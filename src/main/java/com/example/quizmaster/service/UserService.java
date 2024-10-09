@@ -147,16 +147,5 @@ public class UserService {
         return updatePassword(user, newPassword, confirmPassword);
     }
 
-    private List<ResponseUser> toResponseUserList(List<User> users) {
-        return users.stream().map(this::toResponseUser).collect(Collectors.toList());
-    }
 
-    private ResponseUser toResponseUser(User user) {
-        return ResponseUser.builder()
-                .email(user.getEmail())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .role(user.getRole().name())
-                .build();
-    }
 }
