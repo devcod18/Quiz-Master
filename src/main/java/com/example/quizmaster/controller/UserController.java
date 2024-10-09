@@ -102,12 +102,6 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Foydalanuvchini ID bo'yicha olish",
-            description = "Berilgan ID bo'yicha foydalanuvchini qaytaradi.")
-    @GetMapping("/getOne/{id}")
-    public ResponseEntity<ApiResponse> getOne(@PathVariable Long id) {
-        ApiResponse response = userService.getOne(id);
-        return ResponseEntity.ok(response);
-    }
+
 
 }
