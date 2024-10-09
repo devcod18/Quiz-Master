@@ -181,12 +181,7 @@ public class QuizService {
             return new ApiResponse("Bir yoki bir necha test topilmadi!", HttpStatus.NOT_FOUND);
         }
 
-        List<Question> allQuestions = quizzes.stream()
-                .flatMap(quiz -> questionRepository
-                        .findAllByQuizId(quiz.getId()).stream()).toList();
 
-        List<ResponseQuestion> responseQuestions = questionService.toResponseQuestion(allQuestions);
-        Collections.shuffle(responseQuestions);
 
         int totalQuestionCount = quizzes.stream()
                 .mapToInt(Quiz::getQuestionCount)
