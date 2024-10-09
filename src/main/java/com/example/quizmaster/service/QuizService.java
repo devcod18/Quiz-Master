@@ -19,8 +19,10 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -175,29 +177,31 @@ public class QuizService {
     }
 
     // Bir nechta testlar uchun tasodifiy savollarni olish
-    public ApiResponse getRandomQuestionsForMultipleQuizzes(List<Long> quizIds) {
-        List<Quiz> quizzes = quizRepository.findAllById(quizIds);
+    public ApiResponse getRandomQuestionsForMultipleQuizzes(Map<Long, Integer> quizIdToQuestionCountMap) {
+        List<Quiz> quizzes = quizRepository.findAllById(quizIdToQuestionCountMap.keySet());
         if (quizzes.isEmpty()) {
             return new ApiResponse("Bir yoki bir necha test topilmadi!", HttpStatus.NOT_FOUND);
         }
 
-        List<Question> allQuestions = quizzes.stream()
-                .flatMap(quiz -> questionRepository
-                        .findAllByQuizId(quiz.getId()).stream()).toList();
+        List<Question> selectedQuestions = new ArrayList<>();
+        for (Quiz quiz : quizzes) {
+            int questionCount = quizIdToQuestionCountMap.getOrDefault(quiz.getId(), 0);
 
-        List<ResponseQuestion> responseQuestions = questionService.toResponseQuestion(allQuestions);
-        Collections.shuffle(responseQuestions);
+            // Random savollarni repository query orqali olish
+            List<Question> randomQuestions = questionRepository.findRandomQuestionsByQuizId(quiz.getId(), questionCount);
 
-        int totalQuestionCount = quizzes.stream()
-                .mapToInt(Quiz::getQuestionCount)
-                .sum();
+            if (randomQuestions.size() < questionCount) {
+                return new ApiResponse("Yetarli savollar mavjud emas!", HttpStatus.CONFLICT);
+            }
 
-        if (responseQuestions.size() >= totalQuestionCount) {
-            return new ApiResponse("Muvaffaqiyat!", HttpStatus.OK, responseQuestions.subList(0, totalQuestionCount));
+            selectedQuestions.addAll(randomQuestions);
         }
 
-        return new ApiResponse("Yetarli savollar mavjud emas!", HttpStatus.CONFLICT, responseQuestions);
+        List<ResponseQuestion> responseQuestions = questionService.toResponseQuestion(selectedQuestions);
+        return new ApiResponse("Muvaffaqiyat!", HttpStatus.OK, responseQuestions);
     }
+
+
 
     // Testlarni javob formatiga o'zgartirish
     private ResponseQuiz mapToResponseQuiz(Quiz quiz) {
