@@ -41,7 +41,7 @@ public class AuthService {
                 .password(passwordEncoder.encode(request.password()))
                 .activationCode(code)
                 .role(RoleEnum.ROLE_USER)
-                .build();
+                .enabled(false).build();
         userRepository.save(user);
 
         String emailContent = String.format(
