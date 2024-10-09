@@ -17,4 +17,5 @@ public class ResponseQuiz {
     private LocalDateTime updatedAt;
     private Integer timeLimit;
     private Integer questionCount;
+    private boolean deleted;
 }

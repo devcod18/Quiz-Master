@@ -45,7 +45,7 @@ public class UserController {
     @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN', 'ROLE_ADMIN')")
     @Operation(summary = "Foydalanuvchilarni ism bo'yicha qidirish admin uchun",
             description = "Foydalanuvchilarni ularning ismi bo'yicha qidiradi")
-    @GetMapping("/search")
+    @GetMapping("/search/admin")
     public ResponseEntity<ApiResponse> search(
             @Valid @RequestParam String name,
             @CurrentUser User user) {

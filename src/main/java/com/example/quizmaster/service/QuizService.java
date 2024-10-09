@@ -11,7 +11,6 @@ import com.example.quizmaster.repository.AnswerRepository;
 import com.example.quizmaster.repository.QuestionRepository;
 import com.example.quizmaster.repository.QuizRepository;
 import com.example.quizmaster.repository.ResultRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -53,6 +52,7 @@ public class QuizService {
         PageRequest pageRequest = PageRequest.of(page, size);
         Page<Quiz> quizPage = quizRepository.findAllByOrderByUpdatedAtDesc(pageRequest);
         List<ResponseQuiz> responseQuizzes = quizPage.getContent().stream()
+                .filter(quiz -> !quiz.isDeleted())
                 .map(this::mapToResponseQuiz)
                 .collect(Collectors.toList());
 
@@ -66,6 +66,7 @@ public class QuizService {
 
         return new ApiResponse("Quizzes muvaffaqiyatli olindi!", HttpStatus.OK, pageableResponse);
     }
+
 
     // Testni yangilash
     public ApiResponse updateQuiz(Long id, RequestQuiz requestQuiz) {
@@ -91,6 +92,7 @@ public class QuizService {
         }
 
         quiz.setDeleted(true);
+        quizRepository.save(quiz);
         return new ApiResponse("Test muvaffaqiyatli o'chirildi!", HttpStatus.OK);
     }
 
@@ -155,8 +157,11 @@ public class QuizService {
     // Bitta testni olish
     public ApiResponse getOneQuiz(Long id) {
         Quiz quiz = quizRepository.findById(id).orElse(null);
+
         if (quiz == null) {
             return new ApiResponse("Test topilmadi!", HttpStatus.NOT_FOUND);
+        } else if (quiz.isDeleted()) {
+            return new ApiResponse("Quiz topilmadi!", HttpStatus.NOT_FOUND);
         }
 
         ResponseQuiz responseQuiz = ResponseQuiz.builder()
