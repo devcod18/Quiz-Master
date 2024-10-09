@@ -28,34 +28,34 @@ public class QuizController {
     @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN', 'ROLE_ADMIN')")
     @Operation(summary = "Test saqlash", description = "Berilgan so'rov ma'lumotlari asosida yangi test saqlaydi.")
     @PostMapping("/saveQuiz")
-    public ResponseEntity<ApiResponse> save(@Valid @RequestBody RequestQuiz requestQuiz) {
-        ApiResponse save = service.save(requestQuiz);
+    public ResponseEntity<ApiResponse> saveQuiz(@Valid @RequestBody RequestQuiz requestQuiz) {
+        ApiResponse save = service.saveQuiz(requestQuiz);
         return new ResponseEntity<>(save, save.getCode());
     }
 
     @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_USER')")
     @Operation(summary = "Barcha testlarni olish", description = "Barcha testlarni sahifa bo'yicha olish.")
     @GetMapping("/getAllQuiz")
-    public ResponseEntity<ApiResponse> getAll(
+    public ResponseEntity<ApiResponse> getAllQuiz(
             @Valid @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) {
-        ApiResponse response = service.getAll(page, size);
+        ApiResponse response = service.getAllQuiz(page, size);
         return new ResponseEntity<>(response, response.getCode());
     }
 
     @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN', 'ROLE_ADMIN')")
     @Operation(summary = "Testni yangilash", description = "Berilgan ID orqali mavjud testni yangilaydi.")
     @PutMapping("/updateQuiz/{quizId}")
-    public ResponseEntity<ApiResponse> update(@Valid @PathVariable Long quizId, @RequestBody RequestQuiz requestQuiz) {
-        ApiResponse response = service.update(quizId, requestQuiz);
+    public ResponseEntity<ApiResponse> updateQuiz(@Valid @PathVariable Long quizId, @RequestBody RequestQuiz requestQuiz) {
+        ApiResponse response = service.updateQuiz(quizId, requestQuiz);
         return new ResponseEntity<>(response, response.getCode());
     }
 
     @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN', 'ROLE_ADMIN')")
     @Operation(summary = "Testni o'chirish", description = "Berilgan ID orqali testni o'chiradi.")
     @DeleteMapping("/deleteQuiz/{quizId}")
-    public ResponseEntity<ApiResponse> delete(@Valid @PathVariable Long quizId) {
-        ApiResponse response = service.delete(quizId);
+    public ResponseEntity<ApiResponse> deleteQuiz(@Valid @PathVariable Long quizId) {
+        ApiResponse response = service.deleteQuiz(quizId);
         return new ResponseEntity<>(response, response.getCode());
     }
 
@@ -81,8 +81,8 @@ public class QuizController {
     @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN', 'ROLE_ADMIN')")
     @Operation(summary = "Bir testni ID orqali olish", description = "Berilgan quiz ID orqali bitta test haqida ma'lumot oladi.")
     @GetMapping("/getOneQuiz/{quizId}")
-    public ResponseEntity<ApiResponse> getOne(@Valid @PathVariable Long quizId) {
-        ApiResponse one = service.getOne(quizId);
+    public ResponseEntity<ApiResponse> getOneQuiz(@Valid @PathVariable Long quizId) {
+        ApiResponse one = service.getOneQuiz(quizId);
         return ResponseEntity.ok(one);
     }
 

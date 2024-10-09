@@ -66,10 +66,11 @@ public class UserService {
         List<User> users = userRepository.findUsersByFirstName(name);
         return new ApiResponse(toResponseUserList(users));
     }
-
-    public ApiResponse getAllUsers(int size, int page) {
-        if (size < 1) size = 1;
-
+    public ApiResponse searchUserByFirstNameUser(String name) {
+        List<User> users = userRepository.findUsersByFirstNameUser(name);
+        return new ApiResponse(toResponseUserList(users));
+    }
+    public ApiResponse getAllUsers(int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
         Page<User> users = userRepository.findAllByRole(RoleEnum.ROLE_USER, pageRequest);
         List<ResponseUser> responseUsers = toResponseUserList(users.getContent());
@@ -145,7 +146,6 @@ public class UserService {
         user.setActivationCode(null);
         return updatePassword(user, newPassword, confirmPassword);
     }
-
 
     private List<ResponseUser> toResponseUserList(List<User> users) {
         return users.stream().map(this::toResponseUser).collect(Collectors.toList());

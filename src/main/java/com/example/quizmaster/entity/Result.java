@@ -39,4 +39,9 @@ public class Result {
 
     @ManyToOne
     private Quiz quiz;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
 }

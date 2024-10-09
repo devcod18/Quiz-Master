@@ -19,6 +19,7 @@ public class QuestionController {
 
     private final QuestionService questionService;
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_SUPER_ADMIN')")
     @Operation(summary = "Yangi savol saqlash", description = "Test tizimida yangi savolni saqlash imkonini beradi")
     @PostMapping("/saveQuestion")
     public ResponseEntity<ApiResponse> save(@Valid @RequestBody RequestQuestion question) {
@@ -26,6 +27,7 @@ public class QuestionController {
         return new ResponseEntity<>(apiResponse, apiResponse.getCode());
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_SUPER_ADMIN')")
     @Operation(summary = "Barcha savollarni olish", description = "Barcha test savollarining sahifa bo'yicha ro'yxatini olish")
     @GetMapping("/getAllQuestion")
     public ResponseEntity<ApiResponse> getAllQuestions(@Valid @RequestParam(defaultValue = "0") int page,

@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,11 +34,11 @@ public class QuizService {
     private final AnswerRepository answerRepository;
 
     // Yangi testni saqlash
-    public ApiResponse save(RequestQuiz requestQuiz) {
+    public ApiResponse saveQuiz(RequestQuiz requestQuiz) {
         Quiz quiz = Quiz.builder()
                 .title(requestQuiz.getTitle())
                 .description(requestQuiz.getDescription())
-                .createdAt(LocalDate.now())
+                .createdAt(LocalDateTime.now())
                 .questionCount(requestQuiz.getQuestionCount())
                 .timeLimit(requestQuiz.getTimeLimit())
                 .build();
@@ -47,27 +48,26 @@ public class QuizService {
     }
 
     // Barcha testlarni olish
-    public ApiResponse getAll(int page, int size) {
+    public ApiResponse getAllQuiz(int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
-        Page<Quiz> quizPage = quizRepository.findAll(pageRequest);
-
-        List<ResponseQuiz> responseQuizList = quizPage.getContent().stream()
+        Page<Quiz> quizPage = quizRepository.findAllByOrderByUpdatedAtDesc(pageRequest);
+        List<ResponseQuiz> responseQuizzes = quizPage.getContent().stream()
                 .map(this::mapToResponseQuiz)
                 .collect(Collectors.toList());
 
-        CustomPageable pageable = CustomPageable.builder()
-                .page(page)
+        CustomPageable pageableResponse = CustomPageable.builder()
                 .size(size)
+                .page(page)
                 .totalPage(quizPage.getTotalPages())
                 .totalElements(quizPage.getTotalElements())
-                .data(responseQuizList)
+                .data(responseQuizzes)
                 .build();
 
-        return new ApiResponse("Testlar muvaffaqiyatli olindi!", HttpStatus.OK, pageable);
+        return new ApiResponse("Quizzes muvaffaqiyatli olindi!", HttpStatus.OK, pageableResponse);
     }
 
     // Testni yangilash
-    public ApiResponse update(Long id, RequestQuiz requestQuiz) {
+    public ApiResponse updateQuiz(Long id, RequestQuiz requestQuiz) {
         Quiz quiz = quizRepository.findById(id).orElse(null);
         if (quiz == null) {
             return new ApiResponse("Test topilmadi!", HttpStatus.NOT_FOUND);
@@ -83,7 +83,7 @@ public class QuizService {
     }
 
     // Testni o'chirish
-    public ApiResponse delete(Long id) {
+    public ApiResponse deleteQuiz(Long id) {
         Quiz quiz = quizRepository.findById(id).orElse(null);
         if (quiz == null) {
             return new ApiResponse("Test topilmadi!", HttpStatus.NOT_FOUND);
@@ -101,24 +101,30 @@ public class QuizService {
         }
 
         List<Question> allQuestions = questionRepository.findAllByQuizId(quizId);
+        if (allQuestions.isEmpty()) {
+            return new ApiResponse("Quizga tegishli savollar mavjud emas!", HttpStatus.NOT_FOUND);
+        }
+
         List<ResponseQuestion> responseQuestions = questionService.toResponseQuestion(allQuestions);
         Collections.shuffle(responseQuestions);
 
         int questionCount = quiz.getQuestionCount();
 
-        if (responseQuestions.size() > questionCount) {
+        if (responseQuestions.size() >= questionCount) {
             return new ApiResponse("Muvaffaqiyat!", HttpStatus.OK, responseQuestions.subList(0, questionCount));
         }
 
-        return new ApiResponse("Yetarli savollar mavjud emas!", HttpStatus.CONFLICT, responseQuestions);
+        return new ApiResponse("Yetarli savollar mavjud emas!", HttpStatus.OK, responseQuestions);
     }
 
-    // Testni o'tkazish
+    // testni otkazish
     public ApiResponse passTest(List<ReqPassTest> passTestList, User user, Long quizId, Long timeTaken) {
         Quiz quiz = quizRepository.findById(quizId).orElse(null);
         if (quiz == null) {
             return new ApiResponse("Test topilmadi!", HttpStatus.NOT_FOUND);
         }
+
+        LocalDateTime startTime = LocalDateTime.now();
 
         List<Long> questionIds = passTestList.stream()
                 .map(ReqPassTest::getQuestionId)
@@ -131,12 +137,17 @@ public class QuizService {
                         .anyMatch(answer -> answer.getId().equals(reqPassTest.getAnswerId())))
                 .count();
 
+        LocalDateTime endTime = LocalDateTime.now();
+
         Result result = Result.builder()
                 .correctAnswers((int) correctCountAnswers)
                 .quiz(quiz)
                 .totalQuestion(passTestList.size())
                 .user(user)
                 .timeTaken(timeTaken)
+                .createdAt(LocalDateTime.now())
+                .endTime(endTime)
+                .startTime(startTime)
                 .build();
 
         resultRepository.save(result);
@@ -144,7 +155,7 @@ public class QuizService {
     }
 
     // Bitta testni olish
-    public ApiResponse getOne(Long id) {
+    public ApiResponse getOneQuiz(Long id) {
         Quiz quiz = quizRepository.findById(id).orElse(null);
         if (quiz == null) {
             return new ApiResponse("Test topilmadi!", HttpStatus.NOT_FOUND);
@@ -157,6 +168,7 @@ public class QuizService {
                 .createdAt(quiz.getCreatedAt())
                 .timeLimit(quiz.getTimeLimit())
                 .questionCount(quiz.getQuestionCount())
+                .updatedAt(quiz.getUpdatedAt())
                 .build();
 
         return new ApiResponse("Test topildi!", HttpStatus.OK, responseQuiz);
@@ -171,7 +183,7 @@ public class QuizService {
 
         List<Question> allQuestions = quizzes.stream()
                 .flatMap(quiz -> questionRepository
-                .findAllByQuizId(quiz.getId()).stream()).toList();
+                        .findAllByQuizId(quiz.getId()).stream()).toList();
 
         List<ResponseQuestion> responseQuestions = questionService.toResponseQuestion(allQuestions);
         Collections.shuffle(responseQuestions);
@@ -194,6 +206,7 @@ public class QuizService {
                 .title(quiz.getTitle())
                 .description(quiz.getDescription())
                 .createdAt(quiz.getCreatedAt())
+                .updatedAt(quiz.getUpdatedAt())
                 .timeLimit(quiz.getTimeLimit())
                 .questionCount(quiz.getQuestionCount())
                 .build();

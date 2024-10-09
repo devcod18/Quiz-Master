@@ -13,6 +13,7 @@ import com.example.quizmaster.repository.AnswerRepository;
 import com.example.quizmaster.repository.QuestionRepository;
 import com.example.quizmaster.repository.QuizRepository;
 import com.example.quizmaster.repository.UserAnswerRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,6 +29,7 @@ public class QuestionService {
     private final QuestionRepository questionRepository;
     private final QuizRepository quizRepository;
     private final AnswerRepository answerRepository;
+
     private final UserAnswerRepository userAnswerRepository;
 
     // Savolni saqlash
@@ -130,30 +132,23 @@ public class QuestionService {
 
 
     // Savolni o'chirish
-//
+    @Transactional
     public ApiResponse deleteQuestion(Long questionId) {
         Question question = questionRepository.findById(questionId).orElse(null);
-
         if (question == null) {
-            return new ApiResponse("Question topilmadi!", HttpStatus.NOT_FOUND);
+            return new ApiResponse("Savol topilmadi!", HttpStatus.NOT_FOUND);
         }
-        // 1. UserAnswer larni o'chirish
-        userAnswerRepository.deleteByQuestionId(questionId);
 
-        // 2. Answer larni o'chirish
-        answerRepository.deleteByQuestionId(questionId);
+        // Savolga bog'liq barcha javoblarni o'chirish
+        List<Answer> answers = answerRepository.findByQuestionId(questionId);
+        answerRepository.deleteAll(answers);
 
-        // 3. Question ni o'chirish
+        // Savolni o'chirish
         questionRepository.delete(question);
 
-        // 4. Agar kerak bo'lsa, Quiz dagi question_count ni yangilash
-        Quiz quiz = question.getQuiz();
-        if (quiz != null) {
-            quiz.setQuestionCount(quiz.getQuestionCount() - 1);
-            // quizRepository.save(quiz); // Agar @Transactional ishlatilmasa, buni qo'shish kerak
-        }
-        return new ApiResponse("Question muvaffaqiyatli o'chirildi!", HttpStatus.OK);
+        return new ApiResponse("Savol va unga tegishli javoblar o'chirildi!", HttpStatus.OK);
     }
+
 
     // Bitta savolni olish
     public ApiResponse getOne(Long id) {
