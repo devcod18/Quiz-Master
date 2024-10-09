@@ -11,18 +11,15 @@ import com.example.quizmaster.repository.AnswerRepository;
 import com.example.quizmaster.repository.QuestionRepository;
 import com.example.quizmaster.repository.QuizRepository;
 import com.example.quizmaster.repository.ResultRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -177,30 +174,53 @@ public class QuizService {
     }
 
     // Bir nechta testlar uchun tasodifiy savollarni olish
-    public ApiResponse getRandomQuestionsForMultipleQuizzes(Map<Long, Integer> quizIdToQuestionCountMap) {
-        List<Quiz> quizzes = quizRepository.findAllById(quizIdToQuestionCountMap.keySet());
+    public ApiResponse getRandomQuestionsForMultipleQuizzes(List<Long> quizIds, Map<Long, Integer> quizSizes) {
+        // Berilgan quiz identifikatorlari bo'yicha quizlarni ma'lumotlar bazasidan olish
+        List<Quiz> quizzes = quizRepository.findAllById(quizIds);
+
+        // Agar hech qanday quiz topilmasa, xato xabarini qaytarish
         if (quizzes.isEmpty()) {
             return new ApiResponse("Bir yoki bir necha test topilmadi!", HttpStatus.NOT_FOUND);
         }
 
-        List<Question> selectedQuestions = new ArrayList<>();
+        // Barcha savollarni saqlash uchun ro'yxat yaratish
+        List<Question> allQuestions = new ArrayList<>();
+
+        // Har bir quiz uchun savollarni olish
         for (Quiz quiz : quizzes) {
-            int questionCount = quizIdToQuestionCountMap.getOrDefault(quiz.getId(), 0);
+            // Har bir quiz uchun kiritilgan savol sonini olish, default qiymatda 0 boladi
+            int size = quizSizes.getOrDefault(quiz.getId(), 0);
 
-            // Random savollarni repository query orqali olish
-            List<Question> randomQuestions = questionRepository.findRandomQuestionsByQuizId(quiz.getId(), questionCount);
+            // Har bir quiz bo'yicha savollarni olish
+            List<Question> questions = questionRepository.findAllByQuizId(quiz.getId());
 
-            if (randomQuestions.size() < questionCount) {
-                return new ApiResponse("Yetarli savollar mavjud emas!", HttpStatus.CONFLICT);
+            // Agar savollar mavjud bo'lmasa, keyingi quizga o'tish
+            if (questions.isEmpty()) {
+                continue;
             }
 
-            selectedQuestions.addAll(randomQuestions);
+            // Savol sonini tekshirish va moslashtirish
+            if (size <= 0) {
+                size = questions.size(); // Agar 0 yoki manfiy bo'lsa, barcha savollar olinadi
+            } else if (size > questions.size()) {
+                size = questions.size(); // Agar so'ragan son mavjud savollardan katta bo'lsa, mavjud savollarni olish
+            }
+
+            // Savollarni aralashtirish
+            Collections.shuffle(questions);
+
+            // Tasodifiy savollarni olish
+            List<Question> randomQuestions = questions.subList(0, size);
+
+            // Tasodifiy savollarni umumiy ro'yxatga qo'shish
+            allQuestions.addAll(randomQuestions);
         }
 
-        List<ResponseQuestion> responseQuestions = questionService.toResponseQuestion(selectedQuestions);
+        // Savollarni ResponseQuestion formatiga o'tkazish
+        List<ResponseQuestion> responseQuestions = questionService.toResponseQuestion(allQuestions);
+
         return new ApiResponse("Muvaffaqiyat!", HttpStatus.OK, responseQuestions);
     }
-
 
 
     // Testlarni javob formatiga o'zgartirish
