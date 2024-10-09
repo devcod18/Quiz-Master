@@ -89,7 +89,8 @@ public class QuizService {
             return new ApiResponse("Test topilmadi!", HttpStatus.NOT_FOUND);
         }
 
-
+        quizRepository.delete(quiz);
+        return new ApiResponse("Test muvaffaqiyatli o'chirildi!", HttpStatus.OK);
     }
 
     // Test uchun tasodifiy savollarni olish
