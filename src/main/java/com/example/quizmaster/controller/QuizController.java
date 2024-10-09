@@ -90,17 +90,13 @@ public class QuizController {
     @PreAuthorize("hasRole('ROLE_USER')")
     @Operation(summary = "Bir nechta testlarni boshlash", description = "Berilgan quiz IDlar uchun random savollar olish orqali test sessiyasini boshlaydi.")
     @GetMapping("/start-test")
-    public ResponseEntity<ApiResponse> multiTest(
-            @Valid @RequestParam List<Long> quizIds,
-            @RequestParam Map<Long, Integer> quizSizes) {
-
-        if (quizIds == null || quizIds.isEmpty()) {
-            return ResponseEntity.badRequest().body(new ApiResponse("Quiz IDlar bo'sh bo'lmasligi kerak!", HttpStatus.BAD_REQUEST));
+    public ResponseEntity<ApiResponse> multiTest(@Valid @RequestParam Map<Long, Integer> quizIdToQuestionCountMap) {
+        if (quizIdToQuestionCountMap == null || quizIdToQuestionCountMap.isEmpty()) {
+            return ResponseEntity.badRequest().body(new ApiResponse("Quiz IDlar va savollar soni bo'sh bo'lmasligi kerak!", HttpStatus.BAD_REQUEST));
         }
 
-        ApiResponse apiResponse = service.getRandomQuestionsForMultipleQuizzes(quizIds, quizSizes);
+        ApiResponse apiResponse = service.getRandomQuestionsForMultipleQuizzes(quizIdToQuestionCountMap);
         return ResponseEntity.status(apiResponse.getCode()).body(apiResponse);
     }
-
 
 }
