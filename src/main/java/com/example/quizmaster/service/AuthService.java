@@ -92,7 +92,7 @@ public class AuthService {
 
     private String extractNameFromEmail(String email) {
         String localPart = email.split("@")[0];
-        return localPart.substring(0, 1).toUpperCase() + localPart.substring(1);
+
     }
 
     public int generateFiveDigitNumber() {
