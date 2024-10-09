@@ -33,8 +33,6 @@ public class QuizService {
     private final AnswerRepository answerRepository;
 
 
-
-
     // Yangi testni saqlash
     public ApiResponse saveQuiz(RequestQuiz requestQuiz) {
         Quiz quiz = Quiz.builder()
@@ -238,4 +236,9 @@ public class QuizService {
                 .questionCount(quiz.getQuestionCount())
                 .build();
     }
+
+
+
+
+
 }
