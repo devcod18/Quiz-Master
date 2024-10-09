@@ -200,5 +200,15 @@ public class QuizService {
     }
 
     // Testlarni javob formatiga o'zgartirish
-
+    private ResponseQuiz mapToResponseQuiz(Quiz quiz) {
+        return ResponseQuiz.builder()
+                .id(quiz.getId())
+                .title(quiz.getTitle())
+                .description(quiz.getDescription())
+                .createdAt(quiz.getCreatedAt())
+                .updatedAt(quiz.getUpdatedAt())
+                .timeLimit(quiz.getTimeLimit())
+                .questionCount(quiz.getQuestionCount())
+                .build();
+    }
 }
