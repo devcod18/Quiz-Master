@@ -155,7 +155,11 @@ public class QuizService {
     }
 
     // Bitta testni olish
-
+    public ApiResponse getOneQuiz(Long id) {
+        Quiz quiz = quizRepository.findById(id).orElse(null);
+        if (quiz == null) {
+            return new ApiResponse("Test topilmadi!", HttpStatus.NOT_FOUND);
+        }
 
         ResponseQuiz responseQuiz = ResponseQuiz.builder()
                 .id(quiz.getId())
