@@ -48,7 +48,7 @@ public class AuthService {
                 "Salom %s!\n\n" +
                         "Quiz Master platformasiga xush kelibsiz!\n\n" +
                         "Ro'yxatdan o'tishni tasdiqlash uchun quyidagi kodni kiriting: %d\n\n" +
-                        "Bu kodni hech kimga bermang. Agar bu so'rovni siz yubormagan bo'lsangiz, qo'llab-quvvatlash xizmatiga murojaat qiling!\n\n" +
+                        "Bu kodni hech kimga bermang! Agar bu so'rovni siz yubormagan bo'lsangiz, qo'llab-quvvatlash xizmatiga murojaat qiling!\n\n" +
                         "Eng yaxshi tilaklar bilan! Quiz Master jamoasi!"
                 , name, code);
 
