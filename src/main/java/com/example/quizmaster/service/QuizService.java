@@ -110,8 +110,8 @@ public class QuizService {
 
         List<ResponseQuestion> responseQuestions = questionService.toResponseQuestion(allQuestions);
 
-        if (responseQuestions.size() >= questionCount) {
-            return new ApiResponse("Yetarli savollar mavjud emas!", HttpStatus.OK, responseQuestions.subList(0, questionCount));
+        if (responseQuestions.size() < questionCount) {
+            return new ApiResponse("Yetarli savollar mavjud emas!", HttpStatus.BAD_REQUEST);
         }
 
         return new ApiResponse("Muvaffaqiyatli!", HttpStatus.OK, responseQuestions);

@@ -42,24 +42,14 @@ public class UserController {
         return ResponseEntity.ok(allAdmins);
     }
 
-    @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN','ROLE_ADMIN','ROLE_USER')")
     @Operation(summary = "Foydalanuvchilarni ism bo'yicha qidirish admin uchun",
             description = "Foydalanuvchilarni ularning ismi bo'yicha qidiradi")
     @GetMapping("/search/admin")
     public ResponseEntity<ApiResponse> search(
             @Valid @RequestParam String name,
             @CurrentUser User user) {
-        ApiResponse apiResponse = userService.searchUserByFirstName(name);
-        return ResponseEntity.ok(apiResponse);
-    }
-
-    @Operation(summary = "Foydalanuvchilarni ism bo'yicha qidirish user uchun",
-            description = "Foydalanuvchilarni ularning ismi bo'yicha qidiradi")
-    @GetMapping("/search/user")
-    public ResponseEntity<ApiResponse> searchUser(
-            @Valid @RequestParam String name,
-            @CurrentUser User user) {
-        ApiResponse apiResponse = userService.searchUserByFirstNameUser(name);
+        ApiResponse apiResponse = userService.searchUserByFirstName(name,user);
         return ResponseEntity.ok(apiResponse);
     }
 

@@ -14,4 +14,5 @@ public class ResponseQuestion {
     private String text;
     private List<ResponseAnswer> answers;
     private Long quizId;
+
 }

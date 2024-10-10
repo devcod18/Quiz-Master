@@ -62,14 +62,14 @@ public class UserService {
         return new ApiResponse("Barcha Adminlar muvaffaqiyatli olindi!", HttpStatus.OK, pageable);
     }
 
-    public ApiResponse searchUserByFirstName(String name) {
+    public ApiResponse searchUserByFirstName(String name, User user) {
+        if (user.getRole() == RoleEnum.ROLE_USER || user.getRole() == RoleEnum.ROLE_ADMIN) {
+            return new ApiResponse("Bu foydalanuvchi uchun ruxsat berilmagan", HttpStatus.BAD_REQUEST);
+        }
         List<User> users = userRepository.findUsersByFirstName(name);
         return new ApiResponse(toResponseUserList(users));
     }
-    public ApiResponse searchUserByFirstNameUser(String name) {
-        List<User> users = userRepository.findUsersByFirstNameUser(name);
-        return new ApiResponse(toResponseUserList(users));
-    }
+
     public ApiResponse getAllUsers(int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
         Page<User> users = userRepository.findAllByRole(RoleEnum.ROLE_USER, pageRequest);
